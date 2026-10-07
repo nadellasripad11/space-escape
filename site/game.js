@@ -287,7 +287,29 @@ export function createGame(engine) {
     if (S.over || S.launching || ui.hasModal()) return;
     S.hints++;
     audio.click();
+    ui.hintbarOff();
     ui.modal(content.hint(S.room === 'pod' ? 'pod' : S.room === 'control' ? 'control' : 'quarters'));
+  }
+
+  // a short, state-aware line for the "stuck?" bar at the bottom of the screen.
+  // returns null when the player clearly knows what they are doing (busy / mid-puzzle).
+  function nudge() {
+    if (!S.running || S.over || S.busy || S.launching || ui.hasModal()) return null;
+    if (S.room === 'quarters') {
+      if (S.locker === 'closed') return "Look around and click what glows. Not everything that opens is a door — try the locker.";
+      if (!S.hasCard) return 'Something is glinting on the locker shelf. Click it to take the keycard.';
+      return 'You have a keycard now. The door will accept it — click the door to leave.';
+    }
+    if (S.room === 'control') {
+      if (!S.pinOk) return 'The terminal needs a PIN. Read the whiteboard — it tells you how to work it out.';
+      if (!S.airlockOpen) return 'PIN accepted. Click the airlock to head for the escape pod.';
+      return 'The airlock is open. Click it to step through to the pod bay.';
+    }
+    if (S.room === 'pod') {
+      if (!S.powered) return 'The pod is dead. The control panel needs its wires reconnected — the manual shows the order.';
+      return 'All systems online. Click LAUNCH (or the hatch) when you are ready to go.';
+    }
+    return 'Move the mouse to look around and click anything that glows. Press ? any time for a hint.';
   }
 
   engine.onFrame = (dt) => {
@@ -297,5 +319,5 @@ export function createGame(engine) {
     ui.setO2(S.o2 / TOTAL, S.o2);
   };
 
-  return { S, start, interact, hint, labels: LABELS, refreshAllowed, enterRoom, win, lose, engine, ui, names };
+  return { S, start, interact, hint, nudge, labels: LABELS, refreshAllowed, enterRoom, win, lose, engine, ui, names };
 }

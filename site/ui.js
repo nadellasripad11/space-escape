@@ -54,6 +54,20 @@ export const ui = {
     t.classList.add('on');
   },
   tipOff() { $('#tip').classList.remove('on'); },
+  hintbar(text) {
+    const b = $('#hintbar');
+    if (!text) { this.hintbarOff(); return; }
+    b.querySelector('.hb-text').textContent = text;
+    b.hidden = false;
+    void b.offsetWidth;
+    b.classList.add('on');
+  },
+  hintbarOff() {
+    const b = $('#hintbar');
+    b.classList.remove('on');
+    setTimeout(() => { if (!b.classList.contains('on')) b.hidden = true; }, 320);
+  },
+  hintbarVisible() { return $('#hintbar').classList.contains('on'); },
   async fade(on, ms) {
     const f = $('#fade');
     f.style.transitionDuration = (ms || 400) + 'ms';
