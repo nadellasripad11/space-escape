@@ -25,8 +25,15 @@ function buildKeypad(key, name, col, row, st) {
   rect(f, 420, 90, 600, 720, { fill: '#050b14', r: 22, name: 'bezel inner' });
   text(f, 420, 116, 'AIRLOCK 03  ·  PIN ENTRY', { font: 'mono', size: 15, fill: C.dim, ls: 4, w: 600, align: 'CENTER', name: 'header' });
   rect(f, 480, 170, 480, 110, { fill: '#02090f', stroke: tone, sw: 2, r: 14, fx: [glow(tone, 26, 0.4)], name: 'display' });
-  const shown = good ? 'ACCESS GRANTED' : bad ? 'ACCESS DENIED' : st === 'k0' ? '_   _' : '●   _';
-  text(f, 480, 170, shown, {
+  const slots = !good && !bad;
+  if (slots) {
+    for (let i = 0; i < 2; i++) {
+      const filled = i === 0 && st !== 'k0';
+      ellipse(f, 720 + (i ? 52 : -52) - 18, 225 - 18, 36, 36, filled ? { fill: tone, fx: [glow(tone, 16, 0.8)], name: 'digit slot' } : { stroke: tone, sw: 3, op: 0.7, name: 'digit slot' });
+    }
+  }
+  const shown = good ? 'ACCESS GRANTED' : bad ? 'ACCESS DENIED' : '';
+  if (shown) text(f, 480, 170, shown, {
     font: 'head',
     size: good || bad ? 32 : 58,
     fill: tone,
@@ -139,7 +146,7 @@ function buildPod(key, name, col, row, s) {
   for (let i = 0; i < 5; i++) rect(m, 14, 50 + i * 15, 142 - (i % 2) * 40, 6, { fill: '#9fb4d2', r: 3, name: 'line' });
 
   fx(f);
-  hud(f, 'ESCAPE POD BAY', 5, true);
+  hud(f, 'ESCAPE POD BAY', 5, true, 'hp');
   toast(f, s.toast, s.tone);
   go(hotspot(f, 140, 140, 190, 160, 'manual'), 'manual', { d: 0.3 });
   if (s.powered) {
@@ -226,7 +233,6 @@ function buildWire(key, name, col, row, st) {
 
   pill(f, 230, 716, 230, 48, 'OPEN MANUAL', C.cyan, false);
   fx(f, short);
-  if (short) toast(f, 'Wrong port. Sparks everywhere. Start over.', 'bad');
 
   go(hotspot(f, 230, 716, 230, 48, 'manual button'), 'manual', { d: 0.25 });
   if (!short) {
@@ -252,10 +258,10 @@ function buildCountdown(key, name, col, n) {
   const f = mk(key, name, col, 8);
   bgSpace(f);
   drawPlanet(f, 760, 330, 900);
-  drawPodShip(f, 120, 300, true, false);
+  drawPodShip(f, 120, 440, true, false);
   rect(f, 0, 0, W, H, { fill: '#000000', op: 0.35, name: 'dim' });
-  text(f, 0, 150, 'LAUNCH IN', { font: 'mono', size: 20, fill: C.dim, ls: 12, w: W, align: 'CENTER', name: 'label' });
-  text(f, 0, 190, String(n), { font: 'title', size: 340, fill: n === 1 ? C.red : C.cyan, w: W, align: 'CENTER', fx: [glow(n === 1 ? C.red : C.cyan, 60, 0.5)], name: 'count' });
+  text(f, 0, 70, 'LAUNCH IN', { font: 'mono', size: 20, fill: C.dim, ls: 12, w: W, align: 'CENTER', name: 'label' });
+  text(f, 0, 110, String(n), { font: 'title', size: 260, fill: n === 1 ? C.red : C.cyan, w: W, align: 'CENTER', fx: [glow(n === 1 ? C.red : C.cyan, 60, 0.5)], name: 'count' });
   fx(f, n === 1);
   after(f, 0.9, n === 1 ? 'la' : n === 3 ? 'l2' : 'l1', { d: 0.1 });
 }
@@ -267,7 +273,7 @@ function buildLaunch(key, name, col, gone) {
   if (gone) {
     for (let i = 0; i < 14; i++) rect(f, 100 + i * 90, 120 + ((i * 137) % 640), 300 + (i % 4) * 90, 2, { fill: C.white, op: 0.25 + (i % 3) * 0.12, name: 'speed line' });
   }
-  drawPodShip(f, gone ? 1500 : 120, 300, true, true);
+  drawPodShip(f, gone ? 1500 : 120, 440, true, true);
   fx(f);
   after(f, gone ? 0.3 : 0.25, gone ? 'win' : 'lb', gone ? { d: 0.9 } : { t: 'SMART_ANIMATE', d: 1.7, ease: 'EASE_IN' });
 }
@@ -282,6 +288,8 @@ function buildWin() {
   pill(f, 560, 560, 320, 76, 'PLAY AGAIN', C.green, true);
   text(f, 0, 840, 'built in figma  ·  made with code  ·  the wrong tool', { font: 'mono', size: 13, fill: C.dim, ls: 4, w: W, align: 'CENTER', name: 'credit' });
   fx(f);
+  text(f, 0, 740, 'how this was built  →', { font: 'mono', size: 15, fill: C.cyan, ls: 4, w: W, align: 'CENTER', name: 'about link' });
+  go(hotspot(f, 520, 728, 400, 44, 'about'), 'about', { d: 0.3 });
   go(hotspot(f, 560, 560, 320, 76, 'play again'), 'title', { d: 0.6 });
 }
 

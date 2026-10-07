@@ -58,7 +58,7 @@ function bgSpace(parent) {
   drawStars(parent, 11, 140, 0, 0, W, H);
 }
 
-function hud(parent, roomLabel, o2, held) {
+function hud(parent, roomLabel, o2, held, hint) {
   rect(parent, 0, 0, W, 64, {
     fill: linear(
       [
@@ -134,6 +134,11 @@ function hud(parent, roomLabel, o2, held) {
     });
   }
   if (held) drawKeycard(parent, 36 + 8, iy + 18, 48, 'inv / keycard');
+  if (hint) {
+    rect(parent, 640, 15, 130, 34, { fill: '#07101c', stroke: C.cyanDim, sw: 1.5, r: 17, op: 0.92, name: 'hint button' });
+    text(parent, 640, 15, '?  HINT', { font: 'mono', size: 13, fill: C.cyan, ls: 3, w: 130, align: 'CENTER', lh: 34, name: 'hint label' });
+    go(hotspot(parent, 636, 11, 138, 42, 'hint'), hint, { d: 0.2 });
+  }
 }
 
 function toast(parent, msg, tone) {

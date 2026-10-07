@@ -8,7 +8,7 @@ the whole game is frames + prototype links, generated from the code in `src/` th
 
 1. `node tools/build-plugin.js` (writes `plugin/code.js`)
 2. in figma desktop: plugins > development > import plugin from manifest > `plugin/manifest.json`
-3. run "OMEGA-7 builder". it makes a new page with 35 frames, wires the prototype and checks the win screen is reachable
+3. run "OMEGA-7 builder". it makes a new page with 41 frames, wires the prototype and checks the win screen is reachable
 4. select the title frame and press present
 
 ## solution (spoilers)
@@ -20,3 +20,7 @@ crew 8 x deck 7 = pin 56, then wires red > triangle, blue > square, yellow > cir
 - `src/` shared drawing helpers, one file per set of rooms, `wire.js` for the prototype links
 - `tools/` build scripts
 - `web-prototype/` the first html version of the puzzle logic
+
+## testing without figma
+
+`node tools/mock-figma.js [outDir] [--sheet frameKey ...]` runs the plugin against a small fake of the figma api, plays through the prototype links (solution, wrong pins, wrong wires, hints, close-ups) and can render frames to png. needs `npm install` inside `tools/` once.

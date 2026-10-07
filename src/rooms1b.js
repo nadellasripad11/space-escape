@@ -118,7 +118,7 @@ function buildControl(key, name, col, row, s) {
   drawWhiteboard(f);
   drawSideConsole(f);
   fx(f);
-  hud(f, 'CONTROL ROOM', 11, true);
+  hud(f, 'CONTROL ROOM', 11, true, 'hc');
   toast(f, s.toast, s.tone);
 
   go(hotspot(f, 1060, 140, 340, 260, 'whiteboard'), 'whiteboard', { d: 0.3 });

@@ -1,0 +1,1 @@
+{ "name": "omega-7-tools", "private": true, "devDependencies": { "@resvg/resvg-js": "^2.6.2" } }

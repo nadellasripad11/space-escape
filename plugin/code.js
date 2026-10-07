@@ -304,7 +304,7 @@ function bgSpace(parent) {
   drawStars(parent, 11, 140, 0, 0, W, H);
 }
 
-function hud(parent, roomLabel, o2, held) {
+function hud(parent, roomLabel, o2, held, hint) {
   rect(parent, 0, 0, W, 64, {
     fill: linear(
       [
@@ -380,6 +380,11 @@ function hud(parent, roomLabel, o2, held) {
     });
   }
   if (held) drawKeycard(parent, 36 + 8, iy + 18, 48, 'inv / keycard');
+  if (hint) {
+    rect(parent, 640, 15, 130, 34, { fill: '#07101c', stroke: C.cyanDim, sw: 1.5, r: 17, op: 0.92, name: 'hint button' });
+    text(parent, 640, 15, '?  HINT', { font: 'mono', size: 13, fill: C.cyan, ls: 3, w: 130, align: 'CENTER', lh: 34, name: 'hint label' });
+    go(hotspot(parent, 636, 11, 138, 42, 'hint'), hint, { d: 0.2 });
+  }
 }
 
 function toast(parent, msg, tone) {
@@ -827,12 +832,14 @@ function buildQuarters(key, name, col, row, s) {
   drawLocker(f, s.locker);
   drawQDoor(f, s.held);
   fx(f, true);
-  hud(f, 'SLEEPING QUARTERS', 18, s.held);
+  hud(f, 'SLEEPING QUARTERS', 18, s.held, 'hq');
   toast(f, s.toast, s.tone);
 
   // hotspots last so they sit on top
   go(hotspot(f, 440, 96, 300, 110, 'vent'), s.locker === 'open' ? 'q2v' : s.locker === 'empty' ? 'q3v' : 'q1v');
   go(hotspot(f, 770, 160, 210, 285, 'crew poster'), 'poster', { d: 0.3 });
+  go(hotspot(f, 320, 300, 380, 340, 'bunk'), 'diary', { d: 0.3 });
+  go(hotspot(f, 120, 180, 200, 210, 'porthole'), 'porthole', { d: 0.3 });
   if (s.locker === 'closed') go(hotspot(f, 1010, 230, 190, 420, 'locker'), 'q2');
   if (s.locker === 'open') go(hotspot(f, 1040, 320, 120, 100, 'keycard'), 'q3');
   if (s.locker === 'empty') go(hotspot(f, 1010, 230, 190, 420, 'locker (empty)'), 'q3l');
@@ -979,7 +986,7 @@ function buildControl(key, name, col, row, s) {
   drawWhiteboard(f);
   drawSideConsole(f);
   fx(f);
-  hud(f, 'CONTROL ROOM', 11, true);
+  hud(f, 'CONTROL ROOM', 11, true, 'hc');
   toast(f, s.toast, s.tone);
 
   go(hotspot(f, 1060, 140, 340, 260, 'whiteboard'), 'whiteboard', { d: 0.3 });
@@ -1045,8 +1052,15 @@ function buildKeypad(key, name, col, row, st) {
   rect(f, 420, 90, 600, 720, { fill: '#050b14', r: 22, name: 'bezel inner' });
   text(f, 420, 116, 'AIRLOCK 03  ·  PIN ENTRY', { font: 'mono', size: 15, fill: C.dim, ls: 4, w: 600, align: 'CENTER', name: 'header' });
   rect(f, 480, 170, 480, 110, { fill: '#02090f', stroke: tone, sw: 2, r: 14, fx: [glow(tone, 26, 0.4)], name: 'display' });
-  const shown = good ? 'ACCESS GRANTED' : bad ? 'ACCESS DENIED' : st === 'k0' ? '_   _' : '●   _';
-  text(f, 480, 170, shown, {
+  const slots = !good && !bad;
+  if (slots) {
+    for (let i = 0; i < 2; i++) {
+      const filled = i === 0 && st !== 'k0';
+      ellipse(f, 720 + (i ? 52 : -52) - 18, 225 - 18, 36, 36, filled ? { fill: tone, fx: [glow(tone, 16, 0.8)], name: 'digit slot' } : { stroke: tone, sw: 3, op: 0.7, name: 'digit slot' });
+    }
+  }
+  const shown = good ? 'ACCESS GRANTED' : bad ? 'ACCESS DENIED' : '';
+  if (shown) text(f, 480, 170, shown, {
     font: 'head',
     size: good || bad ? 32 : 58,
     fill: tone,
@@ -1159,7 +1173,7 @@ function buildPod(key, name, col, row, s) {
   for (let i = 0; i < 5; i++) rect(m, 14, 50 + i * 15, 142 - (i % 2) * 40, 6, { fill: '#9fb4d2', r: 3, name: 'line' });
 
   fx(f);
-  hud(f, 'ESCAPE POD BAY', 5, true);
+  hud(f, 'ESCAPE POD BAY', 5, true, 'hp');
   toast(f, s.toast, s.tone);
   go(hotspot(f, 140, 140, 190, 160, 'manual'), 'manual', { d: 0.3 });
   if (s.powered) {
@@ -1246,7 +1260,6 @@ function buildWire(key, name, col, row, st) {
 
   pill(f, 230, 716, 230, 48, 'OPEN MANUAL', C.cyan, false);
   fx(f, short);
-  if (short) toast(f, 'Wrong port. Sparks everywhere. Start over.', 'bad');
 
   go(hotspot(f, 230, 716, 230, 48, 'manual button'), 'manual', { d: 0.25 });
   if (!short) {
@@ -1272,10 +1285,10 @@ function buildCountdown(key, name, col, n) {
   const f = mk(key, name, col, 8);
   bgSpace(f);
   drawPlanet(f, 760, 330, 900);
-  drawPodShip(f, 120, 300, true, false);
+  drawPodShip(f, 120, 440, true, false);
   rect(f, 0, 0, W, H, { fill: '#000000', op: 0.35, name: 'dim' });
-  text(f, 0, 150, 'LAUNCH IN', { font: 'mono', size: 20, fill: C.dim, ls: 12, w: W, align: 'CENTER', name: 'label' });
-  text(f, 0, 190, String(n), { font: 'title', size: 340, fill: n === 1 ? C.red : C.cyan, w: W, align: 'CENTER', fx: [glow(n === 1 ? C.red : C.cyan, 60, 0.5)], name: 'count' });
+  text(f, 0, 70, 'LAUNCH IN', { font: 'mono', size: 20, fill: C.dim, ls: 12, w: W, align: 'CENTER', name: 'label' });
+  text(f, 0, 110, String(n), { font: 'title', size: 260, fill: n === 1 ? C.red : C.cyan, w: W, align: 'CENTER', fx: [glow(n === 1 ? C.red : C.cyan, 60, 0.5)], name: 'count' });
   fx(f, n === 1);
   after(f, 0.9, n === 1 ? 'la' : n === 3 ? 'l2' : 'l1', { d: 0.1 });
 }
@@ -1287,7 +1300,7 @@ function buildLaunch(key, name, col, gone) {
   if (gone) {
     for (let i = 0; i < 14; i++) rect(f, 100 + i * 90, 120 + ((i * 137) % 640), 300 + (i % 4) * 90, 2, { fill: C.white, op: 0.25 + (i % 3) * 0.12, name: 'speed line' });
   }
-  drawPodShip(f, gone ? 1500 : 120, 300, true, true);
+  drawPodShip(f, gone ? 1500 : 120, 440, true, true);
   fx(f);
   after(f, gone ? 0.3 : 0.25, gone ? 'win' : 'lb', gone ? { d: 0.9 } : { t: 'SMART_ANIMATE', d: 1.7, ease: 'EASE_IN' });
 }
@@ -1302,6 +1315,8 @@ function buildWin() {
   pill(f, 560, 560, 320, 76, 'PLAY AGAIN', C.green, true);
   text(f, 0, 840, 'built in figma  ·  made with code  ·  the wrong tool', { font: 'mono', size: 13, fill: C.dim, ls: 4, w: W, align: 'CENTER', name: 'credit' });
   fx(f);
+  text(f, 0, 740, 'how this was built  →', { font: 'mono', size: 15, fill: C.cyan, ls: 4, w: W, align: 'CENTER', name: 'about link' });
+  go(hotspot(f, 520, 728, 400, 44, 'about'), 'about', { d: 0.3 });
   go(hotspot(f, 560, 560, 320, 76, 'play again'), 'title', { d: 0.6 });
 }
 
@@ -1324,6 +1339,114 @@ function buildAllEnd() {
   buildLaunch('lb', '12 / Launch · gone', 4, true);
   buildWin();
   buildLose();
+}
+
+// ---- rooms3.js
+// ---- hints, story close-ups, about page -------------------------------------
+
+function hintFrame(key, name, col, row, title, lines) {
+  const f = mk(key, name, col, row);
+  rect(f, 0, 0, W, H, { fill: radial([[0, '#12203a'], [1, '#03060b']]), name: 'backdrop' });
+  rect(f, 270, 170, 900, 540, {
+    fill: linear([[0, '#1d2d4b'], [1, '#0b1322']], 90),
+    stroke: '#4a628c',
+    sw: 2,
+    r: 28,
+    fx: [shadow(24, 60, 0.8), glow(C.cyan, 40, 0.14)],
+    name: 'card',
+  });
+  text(f, 270, 218, 'NEED A NUDGE?', { font: 'mono', size: 16, fill: C.cyan, ls: 8, w: 900, align: 'CENTER', name: 'eyebrow' });
+  text(f, 270, 252, title, { font: 'title', size: 44, fill: C.white, ls: 3, w: 900, align: 'CENTER', name: 'title' });
+  lines.forEach((ln, i) => {
+    const y = 360 + i * 84;
+    ellipse(f, 340, y + 8, 14, 14, { fill: C.cyan, fx: [glow(C.cyan, 10, 0.8)], name: 'bullet' });
+    text(f, 376, y, ln, { font: 'body', size: 24, lh: 34, fill: C.white, w: 740, name: 'hint line' });
+  });
+  text(f, 270, 650, 'Hints are free. Oxygen is not.', { font: 'mono', size: 14, fill: C.dim, ls: 4, w: 900, align: 'CENTER', name: 'footer' });
+  fx(f);
+  closeBtn(f, 1086, 190, 'BACK');
+}
+
+function buildHints() {
+  hintFrame('hq', '15 / Hint · quarters', 5, 1, 'SLEEPING QUARTERS', [
+    'Not everything you can open is a door.',
+    'Look closely at the locker, then at what you are carrying.',
+    'Some of the things on the wall are worth remembering.',
+  ]);
+  hintFrame('hc', '15 / Hint · control room', 5, 4, 'CONTROL ROOM', [
+    'The terminal wants two digits.',
+    'One number is how many crew there were. The other is on a sign.',
+    'The whiteboard says what to do with them.',
+  ]);
+  hintFrame('hp', '15 / Hint · pod bay', 5, 6, 'POD BAY', [
+    'The panel is dead because three wires are unplugged.',
+    'The manual shows which symbol each color belongs to.',
+    'Connect them in the order the manual gives: red, blue, yellow.',
+  ]);
+}
+
+function buildDiary() {
+  const f = mk('diary', '16 / Crew log (close-up)', 4, 1);
+  rect(f, 0, 0, W, H, { fill: radial([[0, '#1a2a47'], [1, '#04070d']]), name: 'backdrop' });
+  rect(f, 340, 80, 780, 760, { fill: '#000000', op: 0.5, r: 18, fx: [shadow(24, 60, 0.8)], name: 'shadow' });
+  rect(f, 330, 70, 780, 760, { fill: '#f1e6cc', r: 18, name: 'notebook' });
+  for (let y = 150; y < 800; y += 44) rect(f, 400, y, 680, 1.5, { fill: '#c9b88f', name: 'ruled line' });
+  rect(f, 396, 70, 2, 760, { fill: '#d98a8a', op: 0.7, name: 'margin' });
+  for (let y = 110; y < 800; y += 62) ellipse(f, 346, y, 20, 20, { fill: '#2a1f14', op: 0.85, name: 'binding hole' });
+  text(f, 420, 96, 'LOG  ·  M. OKAFOR', { font: 'head', size: 24, fill: '#2a1f14', ls: 3, name: 'title' });
+  const ink = '#1b2a6e';
+  text(f, 420, 160, 'DAY 41\nCoolant leak on deck 7 again.\nCommand calls it "nominal".', { font: 'mono', size: 22, lh: 44, fill: ink, name: 'entry' });
+  text(f, 420, 340, 'DAY 42\nPin changed overnight. Third time\nthis week. Wrote the trick on the\nwhiteboard in the control room so I\nstop locking myself out.', { font: 'mono', size: 22, lh: 44, fill: ink, name: 'entry' });
+  text(f, 420, 600, 'DAY 44\nEveryone took the lifeboats.\nI stayed for the data. Bad call.', { font: 'mono', size: 22, lh: 44, fill: ink, name: 'entry' });
+  ellipse(f, 900, 640, 130, 130, { stroke: '#8c5a2b', sw: 8, op: 0.35, name: 'coffee ring' });
+  fx(f);
+  closeBtn(f, 1130, 80, 'BACK');
+}
+
+function buildPortholeView() {
+  const f = mk('porthole', '17 / Porthole (close-up)', 4, 2);
+  rect(f, 0, 0, W, H, { fill: radial([[0, '#0d1a30'], [1, '#02040a']]), name: 'backdrop' });
+  porthole(f, 410, 110, 620, 5);
+  pulse(f, 850, 600, C.red);
+  text(f, 0, 790, 'Below: a blue world. Somewhere down there a distress beacon is blinking.\nNobody is answering.', { font: 'mono', size: 18, lh: 30, fill: C.dim, w: W, align: 'CENTER', name: 'caption' });
+  fx(f);
+  closeBtn(f, 1120, 80, 'BACK');
+}
+
+function buildAbout() {
+  const f = mk('about', '18 / How this was built', 3, 0);
+  bgSpace(f);
+  rect(f, 270, 150, 900, 600, {
+    fill: linear([[0, '#1d2d4b'], [1, '#0b1322']], 90),
+    stroke: '#4a628c',
+    sw: 2,
+    r: 28,
+    fx: [shadow(24, 60, 0.8), glow(C.cyan, 40, 0.14)],
+    name: 'card',
+  });
+  text(f, 270, 196, 'THE WRONG TOOL', { font: 'mono', size: 16, fill: C.cyan, ls: 8, w: 900, align: 'CENTER', name: 'eyebrow' });
+  text(f, 270, 230, 'HOW THIS WAS BUILT', { font: 'title', size: 44, fill: C.white, ls: 3, w: 900, align: 'CENTER', name: 'title' });
+  const lines = [
+    'No game engine. Every screen is a Figma frame.',
+    'Every click, hint and countdown is a prototype link.',
+    'The oxygen timer is an after-delay trigger on each room.',
+    'The PIN keypad is a five-frame state machine.',
+    'A script generated every room, prop, wire and link.',
+  ];
+  lines.forEach((ln, i) => {
+    const y = 340 + i * 66;
+    ellipse(f, 340, y + 8, 14, 14, { fill: C.green, fx: [glow(C.green, 10, 0.8)], name: 'bullet' });
+    text(f, 376, y, ln, { font: 'body', size: 24, lh: 34, fill: C.white, w: 740, name: 'line' });
+  });
+  fx(f);
+  closeBtn(f, 1086, 170, 'BACK');
+}
+
+function buildAllExtra() {
+  buildHints();
+  buildDiary();
+  buildPortholeView();
+  buildAbout();
 }
 
 // ---- wire.js
@@ -1384,6 +1507,23 @@ async function wire() {
 
 // ---- plugin-main.js
 // ---- plugin entry --------------------------------------------------------------
+function rowLabels() {
+  const rows = [
+    [0, 'TITLE  ·  ENDINGS  ·  ABOUT'],
+    [1, 'ACT I  ·  SLEEPING QUARTERS'],
+    [2, 'ACT I  ·  LOCKER OPEN'],
+    [3, 'ACT I  ·  KEYCARD IN HAND'],
+    [4, 'ACT II  ·  CONTROL ROOM'],
+    [5, 'ACT II  ·  AIRLOCK KEYPAD'],
+    [6, 'ACT III  ·  POD BAY'],
+    [7, 'ACT III  ·  WIRING'],
+    [8, 'LAUNCH'],
+  ];
+  for (const [row, label] of rows) {
+    text(figma.currentPage, 0, row * GRID_Y - 64, label, { font: 'mono', size: 20, fill: C.dim, ls: 8, name: 'row label' });
+  }
+}
+
 (async () => {
   const page = figma.createPage();
   page.name = 'OMEGA-7 (generated)';
@@ -1398,6 +1538,8 @@ async function wire() {
   buildAllPod();
   buildAllWires();
   buildAllEnd();
+  buildAllExtra();
+  rowLabels();
   const r = await wire();
   if (!r.winReachable || r.unreachable.length) {
     figma.closePlugin('OMEGA-7 built, but the flow check failed: ' + JSON.stringify(r));

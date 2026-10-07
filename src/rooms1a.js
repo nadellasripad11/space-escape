@@ -157,12 +157,14 @@ function buildQuarters(key, name, col, row, s) {
   drawLocker(f, s.locker);
   drawQDoor(f, s.held);
   fx(f, true);
-  hud(f, 'SLEEPING QUARTERS', 18, s.held);
+  hud(f, 'SLEEPING QUARTERS', 18, s.held, 'hq');
   toast(f, s.toast, s.tone);
 
   // hotspots last so they sit on top
   go(hotspot(f, 440, 96, 300, 110, 'vent'), s.locker === 'open' ? 'q2v' : s.locker === 'empty' ? 'q3v' : 'q1v');
   go(hotspot(f, 770, 160, 210, 285, 'crew poster'), 'poster', { d: 0.3 });
+  go(hotspot(f, 320, 300, 380, 340, 'bunk'), 'diary', { d: 0.3 });
+  go(hotspot(f, 120, 180, 200, 210, 'porthole'), 'porthole', { d: 0.3 });
   if (s.locker === 'closed') go(hotspot(f, 1010, 230, 190, 420, 'locker'), 'q2');
   if (s.locker === 'open') go(hotspot(f, 1040, 320, 120, 100, 'keycard'), 'q3');
   if (s.locker === 'empty') go(hotspot(f, 1010, 230, 190, 420, 'locker (empty)'), 'q3l');
