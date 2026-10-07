@@ -13,8 +13,9 @@ export async function build(state, kit) {
   cam.position.set(-0.25, 1.5, 3.7);
   cam.lookAt(0.0, 1.33, -2);
 
-  const held = state === 'empty';
-  const doorCol = held ? 0x3dff9a : 0xff3b4e;
+  const doorCol = 0xff3b4e;
+  const doorGlow = [];
+  const doorPanel = [];
 
   // ---- shell ---------------------------------------------------------------------
   const wallM = panelMaps({ base: '#2b3956', repeat: [3, 1.5], cells: 4, seed: 4 });
@@ -183,11 +184,13 @@ export async function build(state, kit) {
   for (let i = 0; i < 5; i++) rbox(0.56, 0.026, 0.03, mat(0x070a12, 0.8, 0.2), 0, 0.82 - i * 0.07, 0.04, door, 0.008);
   rbox(0.05, 0.36, 0.05, mat(0xaebbd8, 0.25, 1), 0.34, 0, 0.06, door, 0.02);
   rbox(0.34, 0.12, 0.02, mat(0x0d1424, 0.5, 0.6), 0, -0.7, 0.035, door, 0.01);
-  const lockLed = sphere(0.025, glowMat(state === 'closed' ? 0xff3b4e : 0x3dff9a, 3), -0.35, -0.55, 0.05, door, 12);
-  hinge.rotation.y = state === 'closed' ? 0 : -1.75;
+  const lockLedM = glowMat(0xff3b4e, 3);
+  sphere(0.025, lockLedM, -0.35, -0.55, 0.05, door, 12);
   register('locker', locker);
 
-  if (state === 'open') {
+  let card;
+  let cardLight;
+  {
     const cardTex = canvasTex(512, 320, (ctx, w, h) => {
       const g = ctx.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#2b7bff'); g.addColorStop(1, '#0b2d7a');
       ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
@@ -196,15 +199,15 @@ export async function build(state, kit) {
       ctx.fillStyle = '#fff'; ctx.font = '700 64px Arial Black, Arial'; ctx.fillText('LVL 2', 180, 250);
     });
     const base = mat(0x0b2d7a, 0.5, 0);
-    const card = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.21, 0.014), [base, base, base, base, new THREE.MeshStandardMaterial({ map: cardTex, emissive: 0x4a8bff, emissiveMap: cardTex, emissiveIntensity: 1.6, roughness: 0.25 }), base]);
+    card = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.21, 0.014), [base, base, base, base, new THREE.MeshStandardMaterial({ map: cardTex, emissive: 0x4a8bff, emissiveMap: cardTex, emissiveIntensity: 1.6, roughness: 0.25 }), base]);
     card.position.set(0.0, 1.41, -0.1);
     card.rotation.set(-0.28, 0.0, 0.05);
     card.castShadow = true;
     locker.add(card);
     register('keycard', card);
-    const cl = new THREE.PointLight(0xaed4ff, 3.2, 3, 2);
-    cl.position.set(0.95, 1.7, -1.15);
-    scene.add(cl);
+    cardLight = new THREE.PointLight(0xaed4ff, 3.2, 3, 2);
+    cardLight.position.set(0.95, 1.7, -1.15);
+    scene.add(cardLight);
   }
 
   // ---- door ------------------------------------------------------------------------------------
@@ -217,13 +220,19 @@ export async function build(state, kit) {
   rbox(0.68, 2.2, 0.08, dpan, 0.36, 1.1, 0.07, dg, 0.02);
   for (const sx of [-0.36, 0.36]) {
     rbox(0.4, 0.8, 0.02, mat(0x070b14, 0.3, 0.2), sx, 1.55, 0.115, dg, 0.02);
-    rbox(0.4, 0.8, 0.012, new THREE.MeshStandardMaterial({ color: 0x0a1020, emissive: doorCol, emissiveIntensity: 0.08, roughness: 0.2 }), sx, 1.55, 0.125, dg, 0.02);
+    const pmat = new THREE.MeshStandardMaterial({ color: 0x0a1020, emissive: doorCol, emissiveIntensity: 0.08, roughness: 0.2 });
+    doorPanel.push(pmat);
+    rbox(0.4, 0.8, 0.012, pmat, sx, 1.55, 0.125, dg, 0.02);
   }
-  rbox(1.2, 0.07, 0.05, glowMat(doorCol, 3.2), 0, 2.33, 0.1, dg, 0.02);
+  const barM = glowMat(doorCol, 3.2);
+  doorGlow.push(barM);
+  rbox(1.2, 0.07, 0.05, barM, 0, 2.33, 0.1, dg, 0.02);
   const reader = rbox(0.18, 0.34, 0.08, mat(0x101828, 0.4, 0.7), -1.05, 1.15, 0.0, dg, 0.02);
   rbox(0.1, 0.012, 0.03, mat(0x000000, 1, 0), -1.05, 1.25, 0.05, dg, 0.004);
-  sphere(0.022, glowMat(doorCol, 3.5), -1.05, 1.05, 0.05, dg, 12);
-  const dl = new THREE.PointLight(doorCol, held ? 3.5 : 4.5, 4.5, 2);
+  const ledM = glowMat(doorCol, 3.5);
+  doorGlow.push(ledM);
+  sphere(0.022, ledM, -1.05, 1.05, 0.05, dg, 12);
+  const dl = new THREE.PointLight(doorCol, 4.5, 4.5, 2);
   dl.position.set(2.2, 2.2, -1.1);
   scene.add(dl);
   register('door', dg);
@@ -236,6 +245,8 @@ export async function build(state, kit) {
   trunk.rotation.y = 0.35;
 
   // ---- lights ----------------------------------------------------------------------------------------
+  const reds = [];
+  const redMats = [];
   scene.add(new THREE.HemisphereLight(0x8a98c0, 0x151522, 1.35));
   for (const x of [-1.6, 1.4]) {
     const s = new THREE.SpotLight(0xff3a48, 16, 14, 0.8, 0.8, 1.6);
@@ -245,7 +256,10 @@ export async function build(state, kit) {
     s.shadow.mapSize.set(1024, 1024);
     s.shadow.bias = -0.0004;
     scene.add(s, s.target);
-    rbox(0.5, 0.06, 0.2, glowMat(0xff3040, 3.5), x, 2.93, 0.4, scene, 0.02);
+    reds.push(s);
+    const rm = glowMat(0xff3040, 3.5);
+    redMats.push(rm);
+    rbox(0.5, 0.06, 0.2, rm, x, 2.93, 0.4, scene, 0.02);
   }
   const fill = new THREE.SpotLight(0xbcd0ff, 70, 18, 0.95, 0.9, 1.5);
   fill.position.set(0.5, 2.6, 3.4);
@@ -257,5 +271,67 @@ export async function build(state, kit) {
   floorBounce.position.set(0, 0.35, -1);
   scene.add(floorBounce);
 
-  return { scene, camera: cam };
+  // dust motes drifting through the red light (live only)
+  let dust = null;
+  if (kit.live.on) {
+    const n = 130;
+    const pos = new Float32Array(n * 3);
+    const rnd = rng(77);
+    for (let i = 0; i < n; i++) { pos[i * 3] = -3 + rnd() * 6; pos[i * 3 + 1] = 0.2 + rnd() * 2.7; pos[i * 3 + 2] = -1.8 + rnd() * 5; }
+    const dg2 = new THREE.BufferGeometry();
+    dg2.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    dust = new THREE.Points(dg2, new THREE.PointsMaterial({ color: 0xffb0b8, size: 0.011, transparent: true, opacity: 0.32, depthWrite: false, blending: THREE.AdditiveBlending }));
+    scene.add(dust);
+  }
+
+  const api = {
+    state,
+    setState(s) {
+      this.state = s;
+      hinge.rotation.y = s === 'closed' ? 0 : -1.75;
+      card.visible = s === 'open';
+      cardLight.intensity = s === 'open' ? 3.2 : 0;
+      lockLedM.emissive.setHex(s === 'closed' ? 0xff3b4e : 0x3dff9a);
+      lockLedM.color.setHex(s === 'closed' ? 0xff3b4e : 0x3dff9a);
+      const col = s === 'empty' ? 0x3dff9a : 0xff3b4e;
+      for (const m of doorGlow) { m.color.setHex(col); m.emissive.setHex(col); }
+      for (const m of doorPanel) m.emissive.setHex(col);
+      dl.color.setHex(col);
+      dl.intensity = s === 'empty' ? 3.5 : 4.5;
+    },
+    async openLocker() {
+      lockLedM.emissive.setHex(0x3dff9a);
+      lockLedM.color.setHex(0x3dff9a);
+      await kit.tweenValue(0, -1.75, 900, (v) => { hinge.rotation.y = v; }, kit.ease.out);
+      card.visible = true;
+      cardLight.intensity = 3.2;
+      this.state = 'open';
+    },
+    takeCard() {
+      card.visible = false;
+      cardLight.intensity = 0;
+      this.state = 'empty';
+      const col = 0x3dff9a;
+      for (const m of doorGlow) { m.color.setHex(col); m.emissive.setHex(col); }
+      for (const m of doorPanel) m.emissive.setHex(col);
+      dl.color.setHex(col);
+      dl.intensity = 3.5;
+    },
+    update(t, dt) {
+      reds.forEach((s, i) => { s.intensity = 5 + 15 * (0.5 + 0.5 * Math.sin(t * 3.2 + i * 1.7)); });
+      redMats.forEach((m, i) => { m.emissiveIntensity = 1.0 + 2.8 * (0.5 + 0.5 * Math.sin(t * 3.2 + i * 1.7)); });
+      if (card.visible) { card.position.y = 1.41 + Math.sin(t * 2) * 0.012; card.rotation.y = Math.sin(t * 1.3) * 0.18; }
+      if (dust) {
+        const p = dust.geometry.attributes.position;
+        for (let i = 0; i < p.count; i++) {
+          p.array[i * 3 + 1] += dt * 0.03 * (0.4 + (i % 5) * 0.2);
+          p.array[i * 3] += Math.sin(t * 0.3 + i) * dt * 0.01;
+          if (p.array[i * 3 + 1] > 2.95) p.array[i * 3 + 1] = 0.2;
+        }
+        p.needsUpdate = true;
+      }
+    },
+  };
+  api.setState(state);
+  return { scene, camera: cam, api };
 }

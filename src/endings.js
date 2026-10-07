@@ -30,6 +30,8 @@ function buildWin() {
   pill(f, 560, 560, 320, 76, 'PLAY AGAIN', C.green, true);
   text(f, 0, 740, 'how this was built  →', { font: 'mono', size: 15, fill: C.cyan, ls: 4, w: W, align: 'CENTER', name: 'about link' });
   text(f, 0, 840, 'built in figma  ·  rendered in 3d  ·  the wrong tool', { font: 'mono', size: 13, fill: '#a9c3e6', ls: 4, w: W, align: 'CENTER', name: 'credit' });
+  text(f, 0, 780, 'play the live 3D version  ↗', { font: 'mono', size: 15, fill: C.green, ls: 4, w: W, align: 'CENTER', name: 'live link' });
+  go(hotspot(f, 480, 768, 480, 44, 'play live 3d'), 'https://nadellasripad11.github.io/space-escape/site/');
   go(hotspot(f, 520, 728, 400, 44, 'about'), 'about', { d: 0.3 });
   go(hotspot(f, 560, 560, 320, 76, 'play again'), 'title', { d: 0.6 });
 }

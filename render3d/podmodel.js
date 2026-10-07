@@ -1,6 +1,6 @@
 // the lifeboat, built along +x (nose to the right). origin at the middle of the hull.
 import * as THREE from 'three';
-import { mat, glowMat, rbox, cyl, sphere, canvasTex } from '/kit.js';
+import { mat, glowMat, rbox, cyl, sphere, canvasTex } from './kit.js';
 
 export function makePod({ ready = false, flame = false } = {}) {
   const g = new THREE.Group();
@@ -37,7 +37,10 @@ export function makePod({ ready = false, flame = false } = {}) {
   nozzle.rotation.z = Math.PI / 2;
   const nozzle2 = cyl(0.38, 0.22, 0.18, mat(0x05070d, 0.8, 0.3), -2.12, 0, 0, g, 48);
   nozzle2.rotation.z = Math.PI / 2;
-  if (flame) {
+  const fg = new THREE.Group();
+  fg.visible = flame;
+  g.add(fg);
+  {
     const flameMat = (c0, c1) => new THREE.ShaderMaterial({
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
       uniforms: { c0: { value: new THREE.Color(c0) }, c1: { value: new THREE.Color(c1) } },
@@ -47,17 +50,18 @@ export function makePod({ ready = false, flame = false } = {}) {
     const fl = new THREE.Mesh(new THREE.ConeGeometry(0.36, 3.2, 48, 12, true), flameMat(0xfff0c8, 0xff5a10));
     fl.rotation.z = Math.PI / 2;
     fl.position.x = -3.7;
-    g.add(fl);
+    fg.add(fl);
     const core = new THREE.Mesh(new THREE.ConeGeometry(0.18, 2.0, 40, 12, true), flameMat(0xffffff, 0xffc060));
     core.rotation.z = Math.PI / 2;
     core.position.x = -3.1;
-    g.add(core);
+    fg.add(core);
   }
   // front window
   const win = new THREE.Mesh(new THREE.SphereGeometry(0.34, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x06101c, emissive: ready ? 0x2aff99 : 0x27d3ff, emissiveIntensity: ready ? 1.3 : 0.55, roughness: 0.1, metalness: 0.3 }));
   win.rotation.z = -Math.PI / 2 + 0.55;
   win.position.set(1.25, 0.4, 0.15);
   win.scale.set(1, 1, 1);
+  const winMat = win.material;
   g.add(win);
   const winRing = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.045, 14, 48), mat(0x6f86ad, 0.3, 0.95));
   winRing.position.set(1.25, 0.4, 0.15);
@@ -72,10 +76,25 @@ export function makePod({ ready = false, flame = false } = {}) {
   rbox(0.8, 1.05, 0.06, mat(0xdde6f2, 0.3, 0.8), 0, 0, 0, hatch, 0.1);
   rbox(0.66, 0.9, 0.05, mat(0x243350, 0.4, 0.8), 0, 0, 0.03, hatch, 0.09);
   rbox(0.05, 0.3, 0.05, mat(0xc3d4e6, 0.25, 1), 0.22, 0, 0.07, hatch, 0.02);
-  sphere(0.045, glowMat(lampCol, 3.5), -0.18, 0.34, 0.07, hatch, 16);
+  const lampM = glowMat(lampCol, 3.5);
+  sphere(0.045, lampM, -0.18, 0.34, 0.07, hatch, 16);
   const hl = new THREE.PointLight(lampCol, ready ? 3 : 2.2, 3, 2);
   hl.position.set(-0.35, 0.34, 1.2);
   g.add(hl);
   g.userData.hatch = hatch;
+  g.userData.flame = fg;
+  g.userData.setReady = (r) => {
+    const c = r ? 0x3dff9a : 0xff3b4e;
+    lampM.color.setHex(c);
+    lampM.emissive.setHex(c);
+    hl.color.setHex(c);
+    hl.intensity = r ? 3 : 2.2;
+    winMat.emissive.setHex(r ? 0x2aff99 : 0x27d3ff);
+    winMat.emissiveIntensity = r ? 1.3 : 0.55;
+  };
+  g.userData.update = (t) => {
+    if (!fg.visible) return;
+    fg.scale.set(1 + 0.12 * Math.sin(t * 38) + 0.07 * Math.sin(t * 23), 1 + 0.06 * Math.sin(t * 31), 1);
+  };
   return g;
 }

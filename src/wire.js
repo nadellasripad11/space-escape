@@ -20,7 +20,9 @@ async function wire() {
     const ownKey = topFrame(owner).name.split(' · ')[0];
     if (spec.to === ownKey) continue; // figma rejects self-navigation
     let action;
-    if (spec.to === 'BACK') {
+    if (spec.to.startsWith('http')) {
+      action = { type: 'URL', url: spec.to, openInNewTab: true };
+    } else if (spec.to === 'BACK') {
       action = { type: 'BACK' };
     } else {
       const dest = frames[spec.to];
@@ -35,7 +37,7 @@ async function wire() {
     const trigger = spec.k === 'timer' ? { type: 'AFTER_TIMEOUT', timeout: spec.s } : { type: 'ON_CLICK' };
     if (!byNode.has(owner)) byNode.set(owner, []);
     byNode.get(owner).push({ trigger, actions: [action] });
-    edges.push([ownKey, spec.to]);
+    if (!spec.to.startsWith('http')) edges.push([ownKey, spec.to]);
   }
   for (const [n, reactions] of byNode) await n.setReactionsAsync(reactions);
   for (const [n, base] of specs) n.name = base; // strip tags only after everything succeeded

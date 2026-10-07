@@ -63,7 +63,8 @@ export async function build(state, kit) {
   cap.rotation.x = Math.PI / 2;
   const mast = cyl(0.09, 0.09, 6, mat(0x6f86ad, 0.3, 0.95), 0, 0, 7.2, st, 12);
   mast.rotation.x = Math.PI / 2;
-  const beacon = sphere(0.22, glowMat(0xff3b4e, 6), 0, 0, 10.3, st, 16);
+  const beaconM = glowMat(0xff3b4e, 6);
+  const beacon = sphere(0.22, beaconM, 0, 0, 10.3, st, 16);
   // solar wings on the hub
   for (const sx of [-1, 1]) {
     const arm = rbox(0.18, 0.18, 4, darkM, sx * 2.0, 0, 0, st, 0.04);
@@ -75,5 +76,13 @@ export async function build(state, kit) {
   // a distant second ring-segment fragment for depth
   const frag = rbox(3, 0.5, 0.5, darkM, -4, 9, -30, scene, 0.05);
   frag.rotation.set(0.5, 0.4, 0.8);
-  return { scene, camera: cam };
+  const api = {
+    update(t, dt) {
+      st.rotation.z += dt * 0.06;
+      beaconM.emissiveIntensity = 2 + 5 * (0.5 + 0.5 * Math.sin(t * 4));
+      cam.position.x = Math.sin(t * 0.1) * 1.2;
+      cam.lookAt(0, 0, 0);
+    },
+  };
+  return { scene, camera: cam, api };
 }

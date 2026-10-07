@@ -526,6 +526,8 @@ function buildTitle() {
   text(f, 112, 300, 'OMEGA-7', { font: 'title', size: 150, fill: C.white, ls: 6, fx: [glow(C.cyan, 40, 0.35)], name: 'title' });
   text(f, 120, 500, 'You wake up alone.\nOxygen is falling. Find the escape pod.', { font: 'body', size: 26, lh: 40, fill: '#a9c3e6', name: 'tagline' });
   pill(f, 120, 640, 320, 76, 'WAKE UP  →', C.cyan, true);
+  pill(f, 470, 640, 400, 76, 'PLAY LIVE IN 3D  ↗', C.cyan, false);
+  go(hotspot(f, 470, 640, 400, 76, 'play live 3d'), 'https://nadellasripad11.github.io/space-escape/site/');
   text(f, 120, 770, 'Present mode.  Click everything.  Trust nothing.', { font: 'mono', size: 14, fill: '#8fa9cc', ls: 2, name: 'hint' });
   go(hotspot(f, 120, 640, 320, 76, 'wake up'), 'q1', { d: 0.9 });
 }
@@ -961,6 +963,8 @@ function buildWin() {
   pill(f, 560, 560, 320, 76, 'PLAY AGAIN', C.green, true);
   text(f, 0, 740, 'how this was built  →', { font: 'mono', size: 15, fill: C.cyan, ls: 4, w: W, align: 'CENTER', name: 'about link' });
   text(f, 0, 840, 'built in figma  ·  rendered in 3d  ·  the wrong tool', { font: 'mono', size: 13, fill: '#a9c3e6', ls: 4, w: W, align: 'CENTER', name: 'credit' });
+  text(f, 0, 780, 'play the live 3D version  ↗', { font: 'mono', size: 15, fill: C.green, ls: 4, w: W, align: 'CENTER', name: 'live link' });
+  go(hotspot(f, 480, 768, 480, 44, 'play live 3d'), 'https://nadellasripad11.github.io/space-escape/site/');
   go(hotspot(f, 520, 728, 400, 44, 'about'), 'about', { d: 0.3 });
   go(hotspot(f, 560, 560, 320, 76, 'play again'), 'title', { d: 0.6 });
 }
@@ -1010,7 +1014,9 @@ async function wire() {
     const ownKey = topFrame(owner).name.split(' · ')[0];
     if (spec.to === ownKey) continue; // figma rejects self-navigation
     let action;
-    if (spec.to === 'BACK') {
+    if (spec.to.startsWith('http')) {
+      action = { type: 'URL', url: spec.to, openInNewTab: true };
+    } else if (spec.to === 'BACK') {
       action = { type: 'BACK' };
     } else {
       const dest = frames[spec.to];
@@ -1025,7 +1031,7 @@ async function wire() {
     const trigger = spec.k === 'timer' ? { type: 'AFTER_TIMEOUT', timeout: spec.s } : { type: 'ON_CLICK' };
     if (!byNode.has(owner)) byNode.set(owner, []);
     byNode.get(owner).push({ trigger, actions: [action] });
-    edges.push([ownKey, spec.to]);
+    if (!spec.to.startsWith('http')) edges.push([ownKey, spec.to]);
   }
   for (const [n, reactions] of byNode) await n.setReactionsAsync(reactions);
   for (const [n, base] of specs) n.name = base; // strip tags only after everything succeeded

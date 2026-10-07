@@ -3,6 +3,8 @@ export const exposure = 1.0;
 export const bloom = { strength: 0.55, radius: 0.8, threshold: 0.8 };
 export const grade = { vignette: 0.4, grain: 0.035, tint: [1.0, 1.01, 1.06], lift: [0.0, 0.003, 0.01] };
 
+import { makePod } from '../podmodel.js';
+
 export async function build(state, kit) {
   const { THREE, starfield, planet } = kit;
   const scene = new THREE.Scene();
@@ -26,5 +28,22 @@ export async function build(state, kit) {
   glare.position.set(-34, 22, -80);
   glare.lookAt(cam.position);
   scene.add(glare);
-  return { scene, camera: cam };
+  const pod = makePod({ ready: true, flame: true });
+  pod.visible = false;
+  scene.add(pod);
+  scene.add(new THREE.HemisphereLight(0xaac4ff, 0x203050, 1.0));
+  const api = {
+    pod,
+    async fly() {
+      pod.visible = true;
+      pod.scale.setScalar(1.1);
+      pod.rotation.set(0.04, -0.35, 0.06);
+      await kit.tweenValue(0, 1, 6000, (v) => {
+        pod.position.set(-11 + v * 26, 3.4 - v * 1.7 + Math.sin(v * 5) * 0.15, 7 - v * 6.5);
+        pod.scale.setScalar(1.1 * (1 - v * 0.55));
+      }, kit.ease.inOut);
+    },
+    update(t, dt) { pod.userData.update(t); },
+  };
+  return { scene, camera: cam, api };
 }

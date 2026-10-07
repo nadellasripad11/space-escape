@@ -5,8 +5,7 @@ export const grade = { vignette: 0.5, grain: 0.03, tint: [0.98, 1.02, 1.08], lif
 
 export async function build(state, kit) {
   const { THREE, mat, glowMat, rbox, cyl, sphere, plane, panelMaps, noiseRough, canvasTex, starfield, planet, register, rng } = kit;
-  const open = state === 'open';
-  const accent = open ? 0x3dff9a : 0x27d3ff;
+  const accent = 0x27d3ff;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x05070d);
   scene.fog = new THREE.FogExp2(0x0a1220, 0.025);
@@ -41,7 +40,8 @@ export async function build(state, kit) {
 
   const trim = mat(0x0b111e, 0.5, 0.7);
   rbox(7, 0.2, 0.12, trim, 0, 0.1, -1.94, scene, 0.02);
-  rbox(7, 0.025, 0.02, glowMat(accent, 2.2), 0, 0.22, -1.9, scene, 0.005);
+  const neonM = glowMat(accent, 2.2);
+  rbox(7, 0.025, 0.02, neonM, 0, 0.22, -1.9, scene, 0.005);
   rbox(7, 0.26, 0.2, trim, 0, 2.88, -1.88, scene, 0.02);
   for (const sx of [-1, 1]) rbox(0.1, 3, 0.1, trim, sx * 3.45, 1.5, -1.95, scene, 0.02);
 
@@ -84,19 +84,24 @@ export async function build(state, kit) {
     const on = c !== 0x1b2a44;
     rbox(0.07, 0.025, 0.07, on ? glowMat(c, 1.6 + r()) : mat(c, 0.5, 0.2), -2.1 + (i % 23) * 0.18, 0.98, -0.95 - Math.floor(i / 23) * 0.14, scene, 0.008);
   }
-  rbox(4.7, 0.05, 0.05, glowMat(accent, 2.0), 0, 0.12, -0.6, scene, 0.01);
+  const neon2M = glowMat(accent, 2.0);
+  rbox(4.7, 0.05, 0.05, neon2M, 0, 0.12, -0.6, scene, 0.01);
 
-  const termTex = canvasTex(640, 400, (ctx, w, h) => {
+  let termOpen = false;
+  let termLines = null;
+  const drawTerm = (ctx, w, h, cursor) => {
     ctx.fillStyle = '#031017'; ctx.fillRect(0, 0, w, h);
     const g = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, 400);
-    g.addColorStop(0, open ? 'rgba(61,255,154,0.22)' : 'rgba(39,211,255,0.22)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    g.addColorStop(0, termOpen ? 'rgba(61,255,154,0.22)' : 'rgba(39,211,255,0.22)'); g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = open ? '#3dff9a' : '#27d3ff';
+    ctx.fillStyle = termOpen ? '#3dff9a' : '#27d3ff';
     ctx.font = '600 38px Consolas, monospace';
-    const lines = open ? ['> AIRLOCK 03', '> SEAL RELEASED', '> PIN OK', '> _'] : ['> AIRLOCK 03', '> STATUS: SEALED', '> PIN REQUIRED', '> _'];
-    lines.forEach((l, i) => ctx.fillText(l, 36, 80 + i * 74));
+    const lines = termLines || (termOpen ? ['> AIRLOCK 03', '> SEAL RELEASED', '> PIN OK', '> _'] : ['> AIRLOCK 03', '> STATUS: SEALED', '> PIN REQUIRED', '> _']);
+    lines.forEach((l, i) => ctx.fillText(cursor || i < lines.length - 1 ? l : l.replace('_', ' '), 36, 80 + i * 74));
     for (let y = 0; y < h; y += 4) { ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(0, y, w, 1); }
-  });
+  };
+  const termTex = canvasTex(640, 400, (ctx, w, h) => drawTerm(ctx, w, h, true));
+  const redrawTerm = (cursor) => { drawTerm(termTex.image.getContext('2d'), 640, 400, cursor); termTex.needsUpdate = true; };
   const mon = (x, y, z, ry, live) => {
     const g = new THREE.Group();
     g.position.set(x, y, z);
@@ -134,55 +139,58 @@ export async function build(state, kit) {
   const stripe = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.1), new THREE.MeshStandardMaterial({ map: hz, roughness: 0.6 }));
   stripe.position.set(0, 2.33, 0.095);
   hatch.add(stripe);
-    if (open) {
-    const tun = new THREE.MeshStandardMaterial({ color: 0x0b2a1a, emissive: 0x0a5a30, emissiveIntensity: 0.9, roughness: 0.5, metalness: 0.4, side: THREE.DoubleSide });
-    for (const [px, py, pw, ph, rx, ry] of [[-0.6, 1.15, 3.2, 2.0, 0, Math.PI / 2], [0.6, 1.15, 3.2, 2.0, 0, -Math.PI / 2], [0, 2.15, 1.2, 3.2, Math.PI / 2, 0], [0, 0.15, 1.2, 3.2, -Math.PI / 2, 0]]) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), tun);
-      p.position.set(px, py, -1.5);
-      p.rotation.set(rx, ry, 0);
-      hatch.add(p);
-    }
-    for (let i = 0; i < 6; i++) {
-      const z = -0.2 - i * 0.5;
-      rbox(1.2, 0.06, 0.06, glowMat(0x3dff9a, 2.6), 0, 2.12, z, hatch, 0.01);
-      rbox(1.2, 0.06, 0.06, glowMat(0x3dff9a, 2.6), 0, 0.18, z, hatch, 0.01);
-      rbox(0.06, 2.0, 0.06, glowMat(0x3dff9a, 2.6), -0.57, 1.15, z, hatch, 0.01);
-      rbox(0.06, 2.0, 0.06, glowMat(0x3dff9a, 2.6), 0.57, 1.15, z, hatch, 0.01);
-    }
-    rbox(1.2, 2.0, 0.05, glowMat(0xb8ffd8, 3.2), 0, 1.15, -3.2, hatch, 0.01);
-    const tl = new THREE.PointLight(0x3dff9a, 9, 5, 2);
-    tl.position.set(-2.7, 1.3, -1.2);
-    scene.add(tl);
-    const dh = new THREE.Group();
-    dh.position.set(-0.62, 1.15, 0.1);
-    hatch.add(dh);
-    const door = cyl(0.56, 0.56, 0.12, mat(0x3a4d78, 0.35, 0.9), 0.56, 0, 0.0, dh, 48);
-    door.rotation.x = Math.PI / 2;
-    dh.rotation.y = -1.2;
-  } else {
-    const door = cyl(0.62, 0.62, 0.14, mat(0x3a4d78, 0.32, 0.92), 0, 1.15, 0.1, hatch, 64);
-    door.rotation.x = Math.PI / 2;
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.05, 20, 64), mat(0x5b7299, 0.3, 0.95));
-    rim.position.set(0, 1.15, 0.17); rim.castShadow = true; hatch.add(rim);
-    const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.035, 16, 48), mat(0x9fb4d2, 0.3, 1));
-    wheel.position.set(0, 1.15, 0.24); wheel.castShadow = true; hatch.add(wheel);
-    for (let i = 0; i < 3; i++) {
-      const sp = rbox(0.62, 0.05, 0.05, mat(0x9fb4d2, 0.3, 1), 0, 1.15, 0.24, hatch, 0.015);
-      sp.rotation.z = (i * Math.PI) / 3;
-    }
-    sphere(0.06, mat(0x9fb4d2, 0.3, 1), 0, 1.15, 0.26, hatch, 20);
+  // tunnel behind the door (hidden until the airlock opens)
+  const tunnel = new THREE.Group();
+  hatch.add(tunnel);
+  const tun = new THREE.MeshStandardMaterial({ color: 0x0b2a1a, emissive: 0x0a5a30, emissiveIntensity: 0.9, roughness: 0.5, metalness: 0.4, side: THREE.DoubleSide });
+  for (const [px, py, pw, ph, rx, ry] of [[-0.6, 1.15, 3.2, 2.0, 0, Math.PI / 2], [0.6, 1.15, 3.2, 2.0, 0, -Math.PI / 2], [0, 2.15, 1.2, 3.2, Math.PI / 2, 0], [0, 0.15, 1.2, 3.2, -Math.PI / 2, 0]]) {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), tun);
+    p.position.set(px, py, -1.5);
+    p.rotation.set(rx, ry, 0);
+    tunnel.add(p);
   }
-  const lampCol = open ? 0x3dff9a : 0xff3b4e;
-  sphere(0.07, glowMat(lampCol, 3.5), 0, 2.2, 0.12, hatch, 20);
-  const lampL = new THREE.PointLight(lampCol, 5, 4, 2);
+  for (let i = 0; i < 6; i++) {
+    const z = -0.2 - i * 0.5;
+    rbox(1.2, 0.06, 0.06, glowMat(0x3dff9a, 2.6), 0, 2.12, z, tunnel, 0.01);
+    rbox(1.2, 0.06, 0.06, glowMat(0x3dff9a, 2.6), 0, 0.18, z, tunnel, 0.01);
+    rbox(0.06, 2.0, 0.06, glowMat(0x3dff9a, 2.6), -0.57, 1.15, z, tunnel, 0.01);
+    rbox(0.06, 2.0, 0.06, glowMat(0x3dff9a, 2.6), 0.57, 1.15, z, tunnel, 0.01);
+  }
+  rbox(1.2, 2.0, 0.05, glowMat(0xb8ffd8, 3.2), 0, 1.15, -3.2, tunnel, 0.01);
+  tunnel.visible = false;
+  const tl = new THREE.PointLight(0x3dff9a, 0, 5, 2);
+  tl.position.set(-2.7, 1.3, -1.2);
+  scene.add(tl);
+  // the round door swings on a hinge at its left edge
+  const dh = new THREE.Group();
+  dh.position.set(-0.62, 1.15, 0.1);
+  hatch.add(dh);
+  const disc = cyl(0.62, 0.62, 0.14, mat(0x3a4d78, 0.32, 0.92), 0.62, 0, 0, dh, 64);
+  disc.rotation.x = Math.PI / 2;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.05, 20, 64), mat(0x5b7299, 0.3, 0.95));
+  rim.position.set(0.62, 0, 0.07); rim.castShadow = true; dh.add(rim);
+  const wheelGrp = new THREE.Group();
+  wheelGrp.position.set(0.62, 0, 0.14);
+  dh.add(wheelGrp);
+  const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.035, 16, 48), mat(0x9fb4d2, 0.3, 1));
+  wheel.castShadow = true; wheelGrp.add(wheel);
+  for (let i = 0; i < 3; i++) {
+    const sp = rbox(0.62, 0.05, 0.05, mat(0x9fb4d2, 0.3, 1), 0, 0, 0, wheelGrp, 0.015);
+    sp.rotation.z = (i * Math.PI) / 3;
+  }
+  sphere(0.06, mat(0x9fb4d2, 0.3, 1), 0, 0, 0.02, wheelGrp, 20);
+  const lampM = glowMat(0xff3b4e, 3.5);
+  sphere(0.07, lampM, 0, 2.2, 0.12, hatch, 20);
+  const lampL = new THREE.PointLight(0xff3b4e, 5, 4, 2);
   lampL.position.set(-2.7, 2.1, -1.5);
   scene.add(lampL);
-  const statusTex = canvasTex(512, 128, (ctx, w, h) => {
+  const drawStatus = (ctx, w, h, isOpen) => {
     ctx.fillStyle = '#05080f'; ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = open ? '#3dff9a' : '#ff3b4e';
+    ctx.fillStyle = isOpen ? '#3dff9a' : '#ff3b4e';
     ctx.font = '700 62px Arial Black, Arial'; ctx.textAlign = 'center';
-    ctx.fillText(open ? 'OPEN' : 'SEALED', w / 2, 84);
-  });
+    ctx.fillText(isOpen ? 'OPEN' : 'SEALED', w / 2, 84);
+  };
+  const statusTex = canvasTex(512, 128, (ctx, w, h) => drawStatus(ctx, w, h, false));
   const status = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.22), new THREE.MeshStandardMaterial({ map: statusTex, emissive: 0xffffff, emissiveMap: statusTex, emissiveIntensity: 1.2 }));
   status.position.set(0, 0.45, 0.1);
   hatch.add(status);
@@ -266,5 +274,41 @@ export async function build(state, kit) {
     sl.target.position.set(x, 0.5, -1.2);
     scene.add(sl, sl.target);
   }
-  return { scene, camera: cam };
+  const setColors = (isOpen) => {
+    const lamp = isOpen ? 0x3dff9a : 0xff3b4e;
+    lampM.color.setHex(lamp); lampM.emissive.setHex(lamp); lampL.color.setHex(lamp);
+    const acc = isOpen ? 0x3dff9a : 0x27d3ff;
+    for (const m of [neonM, neon2M]) { m.color.setHex(acc); m.emissive.setHex(acc); }
+    termLight.color.setHex(acc);
+    termOpen = isOpen;
+    redrawTerm(true);
+    drawStatus(statusTex.image.getContext('2d'), 512, 128, isOpen);
+    statusTex.needsUpdate = true;
+  };
+  let blink = 1;
+  const api = {
+    open: false,
+    setOpen(isOpen) {
+      this.open = isOpen;
+      setColors(isOpen);
+      tunnel.visible = isOpen;
+      tl.intensity = isOpen ? 9 : 0;
+      dh.rotation.y = isOpen ? -1.2 : 0;
+    },
+    setTerminal(lines) { termLines = lines; redrawTerm(true); },
+    async openAnimated() {
+      this.open = true;
+      setColors(true);
+      tunnel.visible = true;
+      await kit.tweenValue(0, 1, 600, (v) => { wheelGrp.rotation.z = v * Math.PI * 2; }, kit.ease.inOut);
+      await kit.tweenValue(0, 1, 1200, (v) => { dh.rotation.y = -1.2 * v; tl.intensity = 9 * v; }, kit.ease.inOut);
+    },
+    update(t, dt) {
+      const b = Math.floor(t * 2) % 2;
+      if (b !== blink) { blink = b; redrawTerm(b === 0); }
+      pl.rotation.y += dt * 0.012;
+    },
+  };
+  api.setOpen(state === 'open');
+  return { scene, camera: cam, api };
 }

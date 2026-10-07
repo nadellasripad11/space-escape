@@ -4,6 +4,34 @@ export { THREE };
 
 // ---- regions: screen-space boxes of named objects, in 1440x900 ----------------
 const reg = {};
+export const live = { on: false };
+export function clearRegistry() { for (const k of Object.keys(reg)) delete reg[k]; }
+export function getRegistry() { return reg; }
+
+// ---- tweens (driven by tick(dtMs) in the live site) -----------------------------------
+export const ease = {
+  inOut: (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
+  out: (t) => 1 - Math.pow(1 - t, 3),
+  in: (t) => t * t,
+  linear: (t) => t,
+};
+const tweens = [];
+export function tweenValue(from, to, ms, onUpdate, easing) {
+  return new Promise((resolve) => {
+    tweens.push({ from, to, ms, t: 0, onUpdate, easing: easing || ease.inOut, resolve });
+  });
+}
+export function tick(dtMs) {
+  for (let i = tweens.length - 1; i >= 0; i--) {
+    const w = tweens[i];
+    w.t += dtMs;
+    const k = Math.min(1, w.t / w.ms);
+    w.onUpdate(w.from + (w.to - w.from) * w.easing(k));
+    if (k >= 1) { tweens.splice(i, 1); w.resolve(); }
+  }
+}
+export function clearTweens() { tweens.length = 0; }
+
 export function register(name, obj) {
   reg[name] = obj;
   return obj;

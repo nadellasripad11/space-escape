@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OMEGA-7 · live 3D escape room</title>
+  <meta name="description" content="a 3d escape room built for hack club's wrong tool. wake up alone on a dying station and find the escape pod.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23071020' stroke='%2327d3ff' stroke-width='5'/%3E%3Ctext x='32' y='43' font-size='30' text-anchor='middle' fill='%2327d3ff' font-family='Arial Black'%3E7%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+  { "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/examples/jsm/" } }
+  </script>
+</head>
+<body>
+  <canvas id="gl"></canvas>
+  <div id="tint"></div>
+
+  <section id="title" class="screen">
+    <div class="title-inner">
+      <p class="eyebrow">A 3D ESCAPE ROOM · LIVE IN YOUR BROWSER</p>
+      <h1>OMEGA-7</h1>
+      <p class="tagline">You wake up alone.<br>Oxygen is falling. Find the escape pod.</p>
+      <div class="title-actions">
+        <button id="start" class="btn primary" disabled>LOADING 3D…</button>
+        <button id="about" class="btn ghost">HOW IT'S BUILT</button>
+      </div>
+      <p class="fine">move the mouse to look · click glowing things · M mutes · Esc closes</p>
+      <p class="links"><a href="https://github.com/nadellasripad11/space-escape" target="_blank" rel="noopener">source on github ↗</a></p>
+    </div>
+  </section>
+
+  <div id="hud" hidden>
+    <div class="hud-left"><span class="station">STATION OMEGA-7</span><span class="room" id="room">//</span></div>
+    <button id="hint" class="glass-pill">?&nbsp; HINT</button>
+    <div class="hud-right glass">
+      <span class="o2lab">O2</span>
+      <div class="o2bar"><div id="o2fill"></div></div>
+      <span id="o2pct">100%</span>
+      <span id="clock">07:00</span>
+    </div>
+    <div class="inv">
+      <span class="inv-lab">INVENTORY</span>
+      <div class="slots"><div class="slot glass" id="slot0"></div><div class="slot glass"></div><div class="slot glass"></div></div>
+    </div>
+    <div class="hud-br">
+      <button id="mute" class="glass round" title="sound (M)">♪</button>
+    </div>
+  </div>
+
+  <div id="tip"></div>
+  <div id="toast"></div>
+  <div id="modal-root"></div>
+  <div id="eyes"></div>
+  <div id="fade"></div>
+  <div id="flash"></div>
+  <div id="countdown"></div>
+  <div id="loading"><div class="spin"></div><p>BUILDING THE STATION…</p></div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

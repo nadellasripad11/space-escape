@@ -8,6 +8,8 @@ function buildTitle() {
   text(f, 112, 300, 'OMEGA-7', { font: 'title', size: 150, fill: C.white, ls: 6, fx: [glow(C.cyan, 40, 0.35)], name: 'title' });
   text(f, 120, 500, 'You wake up alone.\nOxygen is falling. Find the escape pod.', { font: 'body', size: 26, lh: 40, fill: '#a9c3e6', name: 'tagline' });
   pill(f, 120, 640, 320, 76, 'WAKE UP  →', C.cyan, true);
+  pill(f, 470, 640, 400, 76, 'PLAY LIVE IN 3D  ↗', C.cyan, false);
+  go(hotspot(f, 470, 640, 400, 76, 'play live 3d'), 'https://nadellasripad11.github.io/space-escape/site/');
   text(f, 120, 770, 'Present mode.  Click everything.  Trust nothing.', { font: 'mono', size: 14, fill: '#8fa9cc', ls: 2, name: 'hint' });
   go(hotspot(f, 120, 640, 320, 76, 'wake up'), 'q1', { d: 0.9 });
 }
