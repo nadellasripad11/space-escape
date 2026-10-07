@@ -26,6 +26,9 @@ window.__omega = { engine, game, ui, audio, kit, act: (n) => game.interact(n, ki
 let hoverName = null;
 let pending = null;
 let ptrDownX = 0, ptrDownY = 0;
+const isTouch = () => matchMedia('(pointer: coarse)').matches;
+// on touch, only forward move events that moved > 4px so small finger wobble doesn't spin the camera
+let lastMouseX = -999, lastMouseY = -999;
 
 // mission guide widget: a persistent step-by-step checklist at the bottom of
 // the screen. it checks steps off as the player progresses, and when they sit
@@ -52,6 +55,12 @@ function guideTick() {
 setInterval(guideTick, 500);
 
 function onMove(e) {
+  // on touch: ignore tiny wobbles (< 6px) so resting finger doesn't spin the camera
+  if (e.pointerType === 'touch') {
+    const dx = e.clientX - lastMouseX, dy = e.clientY - lastMouseY;
+    if (Math.hypot(dx, dy) < 6 && lastMouseX !== -999) return;
+    lastMouseX = e.clientX; lastMouseY = e.clientY;
+  }
   engine.mouse.set((e.clientX / innerWidth) * 2 - 1, -((e.clientY / innerHeight) * 2 - 1));
   pending = e;
   markActivity();
@@ -61,7 +70,7 @@ function hoverTick() {
   const e = pending;
   pending = null;
   if (e && engine.scene && !game.S.busy && !ui.hasModal() && !game.S.over) {
-    const hit = engine.pick(e.clientX, e.clientY);
+    const hit = engine.pick(e.clientX, e.clientY, e.pointerType === 'touch');
     const name = hit ? hit.name : null;
     if (name !== hoverName) {
       hoverName = name;
@@ -79,13 +88,23 @@ function hoverTick() {
 
 canvas.addEventListener('pointermove', onMove);
 canvas.addEventListener('pointerleave', () => { engine.mouse.set(0, 0); ui.tipOff(); });
-canvas.addEventListener('pointerdown', (e) => { ptrDownX = e.clientX; ptrDownY = e.clientY; });
+canvas.addEventListener('pointerdown', (e) => {
+  ptrDownX = e.clientX; ptrDownY = e.clientY;
+  if (e.pointerType === 'touch') { lastMouseX = e.clientX; lastMouseY = e.clientY; }
+});
 canvas.addEventListener('click', (e) => {
-  const wasDrag = Math.hypot(e.clientX - ptrDownX, e.clientY - ptrDownY) > 14;
+  // touch taps need a looser threshold (finger wobble can be 20-30px on a phone)
+  const dragThreshold = e.pointerType === 'touch' ? 28 : 14;
+  const wasDrag = Math.hypot(e.clientX - ptrDownX, e.clientY - ptrDownY) > dragThreshold;
   markActivity();
   if (wasDrag || !engine.scene || game.S.busy || ui.hasModal()) return;
-  const hit = engine.pick(e.clientX, e.clientY);
-  if (hit) game.interact(hit.name, hit.object);
+  const touch = e.pointerType === 'touch';
+  const hit = engine.pick(e.clientX, e.clientY, touch);
+  if (hit) {
+    // flash the label so the player sees they tapped something
+    ui.tip(game.labels[hit.name] || hit.name.toUpperCase(), e.clientX, e.clientY);
+    game.interact(hit.name, hit.object);
+  }
 });
 
 document.addEventListener('keydown', (e) => {

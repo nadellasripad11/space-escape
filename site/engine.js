@@ -112,8 +112,20 @@ export class Engine {
   }
 
   // which registered object is under the pointer (only names in `allowed`)
-  pick(clientX, clientY) {
+  // on touch we try a small spiral of offsets so tapping near an object still registers
+  pick(clientX, clientY, touch) {
     if (!this.scene) return null;
+    const offsets = touch
+      ? [[0,0],[20,0],[-20,0],[0,20],[0,-20],[14,14],[-14,14],[14,-14],[-14,-14]]
+      : [[0,0]];
+    for (const [ox, oy] of offsets) {
+      const hit = this._pickAt(clientX + ox, clientY + oy);
+      if (hit) return hit;
+    }
+    return null;
+  }
+
+  _pickAt(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect();
     const x = ((clientX - r.left) / r.width) * 2 - 1;
     const y = -((clientY - r.top) / r.height) * 2 + 1;
