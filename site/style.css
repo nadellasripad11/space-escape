@@ -131,10 +131,15 @@ h1 { font: 900 clamp(48px, 8vw, 124px) var(--head); letter-spacing: 0.04em; line
 #countdown.on { display: grid; }
 #countdown span { animation: pop 0.9s ease-out; }
 @keyframes pop { 0% { transform: scale(1.7); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(0.9); opacity: 0.2; } }
-#loading { position: fixed; inset: 0; z-index: 60; display: grid; place-content: center; justify-items: center; gap: 22px; background: #04070d; font: 13px var(--mono); letter-spacing: 0.4em; color: var(--dim); transition: opacity 0.7s; }
+#loading { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; background: radial-gradient(ellipse at 60% 40%, rgba(10,25,60,0.9) 0%, #04070d 70%); transition: opacity 0.9s; }
 #loading.gone { opacity: 0; pointer-events: none; }
-.spin { width: 54px; height: 54px; border-radius: 50%; border: 3px solid rgba(39, 211, 255, 0.2); border-top-color: var(--cyan); animation: spin 0.9s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.load-oxy { width: 96px; height: 96px; animation: loadbob 2s ease-in-out infinite; }
+@keyframes loadbob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.load-title { font: 900 clamp(48px,10vw,88px)/1 var(--head); letter-spacing:0.08em; color:var(--cyan); text-shadow:0 0 60px rgba(39,211,255,0.55),0 0 120px rgba(39,211,255,0.25); margin-top:6px; }
+.load-sub { font: 13px var(--mono); letter-spacing:0.45em; color:var(--dim); margin-top:-4px; }
+.load-bar-wrap { width: clamp(220px,42vw,420px); height:4px; border-radius:4px; background:rgba(39,211,255,0.12); overflow:hidden; margin-top:4px; }
+#load-bar { height:100%; width:0%; background:linear-gradient(90deg,#27d3ff,#3dff9a); border-radius:4px; transition:width 0.35s ease; }
+.load-tip { font:11px var(--mono); letter-spacing:0.3em; color:rgba(169,195,230,0.45); min-height:16px; }
 
 /* ---- modals ---- */
 .backdrop { position: fixed; inset: 0; z-index: 25; display: grid; place-items: center; padding: 20px; background: rgba(2, 5, 11, 0.55); backdrop-filter: blur(10px); animation: fadein 0.35s ease; overflow: auto; }

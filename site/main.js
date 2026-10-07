@@ -143,6 +143,25 @@ if (matchMedia('(pointer: coarse)').matches) {
 document.getElementById('start').addEventListener('click', () => game.start());
 
 async function boot() {
+  const barEl = document.getElementById('load-bar');
+  const tipEl = document.getElementById('load-tip');
+  const tips = [
+    'initialising WebGL renderer',
+    'loading three.js scene',
+    'placing geometry and lights',
+    'baking shadows',
+    'applying bloom and grade',
+    'adding stars and nebulae',
+    'placing interactive objects',
+    'calibrating the airlock',
+    'almost ready…',
+  ];
+  let pct = 0;
+  const fakeT = setInterval(() => {
+    pct = Math.min(pct + (Math.random() * 11 + 3), 88);
+    if (barEl) barEl.style.width = pct + '%';
+    if (tipEl) tipEl.textContent = tips[Math.min(Math.floor(pct / 11), tips.length - 1)];
+  }, 280);
   try {
     await engine.load('title', '');
     engine.markHome();
@@ -150,11 +169,15 @@ async function boot() {
     engine.run();
     requestAnimationFrame(hoverTick);
   } catch (err) {
-    document.querySelector('#loading p').textContent = 'COULD NOT START WEBGL: ' + (err && err.message ? err.message : err);
-    document.querySelector('#loading .spin').style.display = 'none';
+    clearInterval(fakeT);
+    document.querySelector('#loading .load-sub').textContent = 'COULD NOT START WEBGL: ' + (err && err.message ? err.message : err);
     console.error(err);
     return;
   }
+  clearInterval(fakeT);
+  if (barEl) { barEl.style.transition = 'width 0.3s ease'; barEl.style.width = '100%'; }
+  if (tipEl) tipEl.textContent = 'ready!';
+  await new Promise((r) => setTimeout(r, 350));
   document.getElementById('loading').classList.add('gone');
   const b = document.getElementById('start');
   b.disabled = false;
