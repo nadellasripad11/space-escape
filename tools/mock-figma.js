@@ -95,6 +95,9 @@ function makeFigma() {
     createPage: () => mkPage('Page'),
     setCurrentPageAsync: async (p) => { f.currentPage = p; },
     loadFontAsync: async () => {},
+    base64Decode: (b) => Buffer.from(b, 'base64'),
+    createImage: (bytes) => { const hash = 'img' + (f._imgs.length); f._imgs.push(Buffer.from(bytes)); return { hash }; },
+    _imgs: [],
     createFrame: () => new MockNode('FRAME'),
     createRectangle: () => new MockNode('RECTANGLE'),
     createEllipse: () => new MockNode('ELLIPSE'),
@@ -128,6 +131,7 @@ const FAMILY = {
 };
 const hex = (c) => '#' + [c.r, c.g, c.b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
 
+let FIG = null;
 function render(frame, prefix) {
   prefix = prefix || '';
   let defs = '';
@@ -138,6 +142,7 @@ function render(frame, prefix) {
     return [d / det, -b / det, -c / det, a / det, (c * f - d * e) / det, (b * e - a * f) / det];
   };
   const paint = (p, node) => {
+    if (p.type === 'IMAGE') return { image: p.imageHash, op: 1 };
     if (p.type === 'SOLID') return { fill: hex(p.color), op: p.opacity === undefined ? 1 : p.opacity };
     const id = prefix + 'g' + gid++;
     const m = inv(p.gradientTransform);
@@ -148,6 +153,8 @@ function render(frame, prefix) {
     return { fill: 'url(#' + id + ')', op: p.opacity === undefined ? 1 : p.opacity };
   };
   const fxAttr = (node) => {
+    const lb = (node.effects || []).find((e) => e.type === 'LAYER_BLUR' && e.visible !== false);
+    if (lb) { const bid = prefix + 'b' + gid++; defs += '<filter id="' + bid + '" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="' + lb.radius / 2 + '"/></filter>'; return ' filter="url(#' + bid + ')"'; }
     const ds = (node.effects || []).filter((e) => e.type === 'DROP_SHADOW' && e.visible !== false);
     if (!ds.length) return '';
     const id = prefix + 'f' + gid++;
@@ -186,6 +193,14 @@ function render(frame, prefix) {
     for (const p of node.fills || []) {
       if (p.visible === false) continue;
       const pt = paint(p, node);
+      if (pt.image) {
+        const buf = FIG._imgs[Number(pt.image.slice(3))];
+        const isPng = buf[0] === 0x89;
+        const id = prefix + 'im' + gid++;
+        defs += '<clipPath id="' + id + '"><rect width="' + w + '" height="' + h + '" rx="' + (node.cornerRadius || 0) + '"/></clipPath>';
+        out += '<g clip-path="url(#' + id + ')"><image width="' + w + '" height="' + h + '" preserveAspectRatio="xMidYMid slice" href="data:image/' + (isPng ? 'png' : 'jpeg') + ';base64,' + buf.toString('base64') + '"/></g>';
+        continue;
+      }
       out += mk('fill="' + pt.fill + '" fill-opacity="' + pt.op + '"');
     }
     if (node.strokes && node.strokes.length) {
@@ -212,6 +227,7 @@ function render(frame, prefix) {
     if (node.visible === false) return '';
     const tf = 'translate(' + fmt(node.x) + ' ' + fmt(node.y) + ')' + (node.rotation ? ' rotate(' + -node.rotation + ')' : '');
     let body = '';
+    const dbg = process.env.HOT && node.name.startsWith('hotspot') ? '<rect width="' + node.width + '" height="' + node.height + '" fill="rgba(255,0,80,0.16)" stroke="#ff1a66" stroke-width="3"/><text x="6" y="22" font-size="20" font-family="Arial" fill="#fff" stroke="#000" stroke-width="0.8">' + node.name.replace('hotspot / ', '') + '</text>' : '';
     if (node.type === 'TEXT') body = textSvg(node);
     else {
       body = shape(node);
@@ -224,6 +240,7 @@ function render(frame, prefix) {
         } else body += kids;
       }
     }
+    body += dbg;
     const fa = node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE' ? '' : fxAttr(node);
     const fb = fa || (node.type === 'TEXT' ? fxAttr(node) : '');
     return '<g transform="' + tf + '"' + (node.opacity !== 1 ? ' opacity="' + node.opacity + '"' : '') + fb + '>' + body + '</g>';
@@ -240,6 +257,7 @@ async function main() {
   const sheet = sheetAt >= 0 ? rest.slice(sheetAt + 1) : null;
   const code = fs.readFileSync(path.join(__dirname, '..', 'plugin', 'code.js'), 'utf8');
   const figma = makeFigma();
+  FIG = figma;
   const done = new Promise((res) => (figma._done = res));
   vm.runInNewContext(code, { figma, console });
   await Promise.race([done, new Promise((_, rej) => setTimeout(() => rej(new Error('plugin never closed')), 60000))]);

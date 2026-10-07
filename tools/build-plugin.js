@@ -4,7 +4,7 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const root = path.join(__dirname, '..');
-const parts = ['helpers', 'art', 'flow', 'ui', 'rooms1a', 'rooms1b', 'rooms2', 'rooms3', 'wire', 'plugin-main'];
+const parts = ['helpers', 'assets', 'images', 'art', 'flow', 'ui', 'rooms', 'puzzles', 'closeups', 'endings', 'wire', 'plugin-main'];
 const code = parts.map((p) => '// ---- ' + p + '.js\n' + fs.readFileSync(path.join(root, 'src', p + '.js'), 'utf8')).join('\n');
 const out = path.join(root, 'plugin', 'code.js');
 fs.writeFileSync(out, code);

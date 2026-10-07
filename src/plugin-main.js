@@ -20,12 +20,11 @@ function rowLabels() {
   const page = figma.createPage();
   page.name = 'OMEGA-7 (generated)';
   await figma.setCurrentPageAsync(page);
+  page.backgrounds = [{ type: 'SOLID', color: rgb('#080b12') }];
   await loadFonts();
   buildTitle();
   buildAllQuarters();
-  buildPoster();
   buildAllControl();
-  buildWhiteboard();
   buildAllKeypad();
   buildAllPod();
   buildAllWires();

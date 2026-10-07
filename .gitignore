@@ -1,2 +1,5 @@
 dist/
 node_modules/
+src/assets.js
+render3d/out/
+render3d/node_modules/
