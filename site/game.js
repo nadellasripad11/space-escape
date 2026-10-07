@@ -229,6 +229,7 @@ export function createGame(engine) {
   function win() {
     S.over = true;
     S.running = false;
+    ui.showGuide(false);
     audio.hum(false);
     audio.good();
     const st = stats();
@@ -251,6 +252,7 @@ export function createGame(engine) {
   async function lose() {
     S.over = true;
     S.running = false;
+    ui.showGuide(false);
     refreshAllowed();
     audio.alarm(false);
     audio.hum(false);
@@ -275,6 +277,7 @@ export function createGame(engine) {
     ui.showTitle(false);
     await ui.fade(true, 700);
     ui.showHud(true);
+    ui.showGuide(true);
     await enterRoom('quarters');
     S.running = true;
     ui.eyes();
@@ -287,12 +290,31 @@ export function createGame(engine) {
     if (S.over || S.launching || ui.hasModal()) return;
     S.hints++;
     audio.click();
-    ui.hintbarOff();
     ui.modal(content.hint(S.room === 'pod' ? 'pod' : S.room === 'control' ? 'control' : 'quarters'));
   }
 
-  // a short, state-aware line for the "stuck?" bar at the bottom of the screen.
-  // returns null when the player clearly knows what they are doing (busy / mid-puzzle).
+  // the full objective list for the bottom-screen guide widget. each step flips
+  // to done straight off game state, so the widget tracks real progress.
+  function steps() {
+    const reached = { quarters: 0, control: 1, pod: 2, space: 3 }[S.room];
+    const r = reached == null ? 0 : reached;
+    const list = [
+      { label: 'Open the locker', done: S.locker !== 'closed' },
+      { label: 'Take the keycard', done: S.hasCard },
+      { label: 'Unlock the quarters door', done: r >= 1 },
+      { label: 'Crack the terminal PIN', done: S.pinOk },
+      { label: 'Pass through the airlock', done: r >= 2 },
+      { label: 'Reconnect the pod wiring', done: S.powered },
+      { label: 'Launch the escape pod', done: r >= 3 },
+    ];
+    let current = list.findIndex((s) => !s.done);
+    if (current < 0) current = list.length - 1;
+    const doneCount = list.filter((s) => s.done).length;
+    return { steps: list, current, doneCount, now: nudge() };
+  }
+
+  // a short, state-aware line telling the player how to do the current step.
+  // returns null when they are clearly mid-action (busy / a puzzle or reading modal is open).
   function nudge() {
     if (!S.running || S.over || S.busy || S.launching || ui.hasModal()) return null;
     if (S.room === 'quarters') {
@@ -319,5 +341,5 @@ export function createGame(engine) {
     ui.setO2(S.o2 / TOTAL, S.o2);
   };
 
-  return { S, start, interact, hint, nudge, labels: LABELS, refreshAllowed, enterRoom, win, lose, engine, ui, names };
+  return { S, start, interact, hint, nudge, steps, labels: LABELS, refreshAllowed, enterRoom, win, lose, engine, ui, names };
 }

@@ -54,20 +54,32 @@ export const ui = {
     t.classList.add('on');
   },
   tipOff() { $('#tip').classList.remove('on'); },
-  hintbar(text) {
-    const b = $('#hintbar');
-    if (!text) { this.hintbarOff(); return; }
-    b.querySelector('.hb-text').textContent = text;
-    b.hidden = false;
-    void b.offsetWidth;
-    b.classList.add('on');
+  showGuide(on) {
+    const g = $('#guide');
+    if (on) { g.hidden = false; void g.offsetWidth; g.classList.add('on'); }
+    else { g.classList.remove('on'); setTimeout(() => { if (!g.classList.contains('on')) g.hidden = true; }, 360); }
   },
-  hintbarOff() {
-    const b = $('#hintbar');
-    b.classList.remove('on');
-    setTimeout(() => { if (!b.classList.contains('on')) b.hidden = true; }, 320);
+  renderGuide(data) {
+    const g = $('#guide');
+    g.querySelector('.guide-steps').innerHTML = data.steps.map((s, i) => {
+      const cls = s.done ? 'done' : i === data.current ? 'current' : 'todo';
+      return `<li class="${cls}"><span class="gs-mark"></span><span class="gs-label">${s.label}</span></li>`;
+    }).join('');
+    g.querySelector('.guide-count').textContent = data.doneCount + '/' + data.steps.length;
+    const now = g.querySelector('.guide-now');
+    g.querySelector('.guide-now-text').textContent = data.now || '';
+    now.classList.toggle('hide', !data.now);
   },
-  hintbarVisible() { return $('#hintbar').classList.contains('on'); },
+  guidePulse(on) { $('#guide').classList.toggle('nudge', !!on); },
+  guideCollapsed() { return $('#guide').classList.contains('collapsed'); },
+  toggleGuide(force) {
+    const g = $('#guide');
+    const collapsed = force != null ? force : !g.classList.contains('collapsed');
+    g.classList.toggle('collapsed', collapsed);
+    g.querySelector('.guide-toggle').textContent = collapsed ? '+' : '–';
+    try { localStorage.setItem('omega7-guide-collapsed', collapsed ? '1' : '0'); } catch (e) { /* ignore */ }
+    return collapsed;
+  },
   async fade(on, ms) {
     const f = $('#fade');
     f.style.transitionDuration = (ms || 400) + 'ms';
