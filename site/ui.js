@@ -149,4 +149,5 @@ export const ui = {
     modals.push(handle);
     return handle;
   },
+  lastModal() { return modals[modals.length - 1] || null; },
 };

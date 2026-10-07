@@ -25,6 +25,7 @@ window.__omega = { engine, game, ui, audio, kit, act: (n) => game.interact(n, ki
 
 let hoverName = null;
 let pending = null;
+let ptrDownX = 0, ptrDownY = 0;
 
 // mission guide widget: a persistent step-by-step checklist at the bottom of
 // the screen. it checks steps off as the player progresses, and when they sit
@@ -78,9 +79,11 @@ function hoverTick() {
 
 canvas.addEventListener('pointermove', onMove);
 canvas.addEventListener('pointerleave', () => { engine.mouse.set(0, 0); ui.tipOff(); });
+canvas.addEventListener('pointerdown', (e) => { ptrDownX = e.clientX; ptrDownY = e.clientY; });
 canvas.addEventListener('click', (e) => {
+  const wasDrag = Math.hypot(e.clientX - ptrDownX, e.clientY - ptrDownY) > 14;
   markActivity();
-  if (!engine.scene || game.S.busy || ui.hasModal()) return;
+  if (wasDrag || !engine.scene || game.S.busy || ui.hasModal()) return;
   const hit = engine.pick(e.clientX, e.clientY);
   if (hit) game.interact(hit.name, hit.object);
 });
@@ -90,6 +93,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') ui.closeTop();
   else if (e.key === 'm' || e.key === 'M') toggleMute();
   else if (e.key === 'n' || e.key === 'N') toggleMusic();
+  else if (e.key === 'r' || e.key === 'R') toggleMotion();
   else if ((e.key === 'h' || e.key === 'H') && game.S.running) game.hint();
 });
 
@@ -114,6 +118,28 @@ document.addEventListener('keydown', firstGesture, { once: true });
 document.querySelector('#guide .guide-head').addEventListener('click', () => { audio.click(); ui.toggleGuide(); markActivity(); });
 try { ui.toggleGuide(localStorage.getItem('omega7-guide-collapsed') !== '0'); } catch (e) { ui.toggleGuide(true); }
 document.getElementById('about').addEventListener('click', () => { audio.unlock(); audio.click(); ui.modal(content.about()); });
+
+// ---- reduced-motion ----
+let reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+try { const _rv = localStorage.getItem('omega7-reduced'); if (_rv !== null) reducedMotion = _rv === '1'; } catch (e) { /* ignore */ }
+function applyMotion() {
+  document.body.classList.toggle('reduced-motion', reducedMotion);
+  engine.reducedMotion = reducedMotion;
+  document.getElementById('motion').classList.toggle('off', reducedMotion);
+}
+function toggleMotion() {
+  reducedMotion = !reducedMotion;
+  try { localStorage.setItem('omega7-reduced', reducedMotion ? '1' : '0'); } catch (e) { /* ignore */ }
+  applyMotion();
+}
+document.getElementById('motion').addEventListener('click', toggleMotion);
+applyMotion();
+
+// ---- touch fine print ----
+if (matchMedia('(pointer: coarse)').matches) {
+  const fine = document.querySelector('.fine');
+  if (fine) fine.textContent = 'drag to look · tap glowing things · tap ? for a hint';
+}
 document.getElementById('start').addEventListener('click', () => game.start());
 
 async function boot() {

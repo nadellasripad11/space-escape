@@ -240,6 +240,20 @@ export function createGame(engine) {
     return { time: used, left: Math.max(0, Math.round(S.o2)), hints: S.hints };
   }
   const mmss = (s) => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  function makeShareText(st, best) {
+    const stars = st.hints === 0 ? '⭐⭐⭐' : st.hints === 1 ? '⭐⭐' : '⭐';
+    const newBest = best >= st.time;
+    const lines = [
+      '🚀 OMEGA-7 \xb7 3D Escape Room',
+      '✅ Escaped in ' + mmss(st.time) + '  ' + stars,
+      '💨 Air left: ' + mmss(st.left) + '  💡 Hints: ' + st.hints,
+      newBest ? '🏆 New personal best!' : '',
+      '',
+      '▸ play → https://nadellasripad11.github.io/space-escape/site/',
+      '#wrongtool #hackclub',
+    ];
+    return lines.filter((l, i, a) => l || (a[i - 1] && a[i + 1])).join('\n');
+  }
 
   function win() {
     S.over = true;
@@ -262,8 +276,23 @@ export function createGame(engine) {
         <h2>YOU MADE IT.</h2>
         <p>Station Omega-7 came apart four minutes later.<br>You were the only survivor.</p>
         <div class="stats"><div><b>${mmss(st.time)}</b>TIME</div><div><b>${mmss(st.left)}</b>AIR LEFT</div><div><b>${st.hints}</b>HINTS</div><div><b>${mmss(best)}</b>BEST</div></div>
-        <div class="row"><button class="btn green" id="again">PLAY AGAIN</button><a class="btn ghost" href="https://github.com/nadellasripad11/space-escape" target="_blank" rel="noopener">SOURCE ↗</a></div>
-      </div>`, { sticky: true }).el.querySelector('#again').addEventListener('click', () => location.reload());
+        <div class="row"><button class="btn green" id="again">PLAY AGAIN</button><button class="btn ghost" id="share">SHARE ↗</button><a class="btn ghost" href="https://github.com/nadellasripad11/space-escape" target="_blank" rel="noopener">SOURCE ↗</a></div>
+      </div>`, { sticky: true });
+    const winModal = ui.lastModal();
+    winModal.el.querySelector('#again').addEventListener('click', () => location.reload());
+    winModal.el.querySelector('#share').addEventListener('click', async () => {
+      const shareText = makeShareText(st, best);
+      const btn = winModal.el.querySelector('#share');
+      try {
+        if (navigator.share && navigator.canShare && navigator.canShare({ text: shareText })) {
+          await navigator.share({ text: shareText });
+        } else {
+          await navigator.clipboard.writeText(shareText);
+          btn.textContent = 'COPIED ✓';
+          setTimeout(() => { btn.textContent = 'SHARE ↗'; }, 1900);
+        }
+      } catch (e) { /* user cancelled or no clipboard */ }
+    });
   }
 
   async function lose() {

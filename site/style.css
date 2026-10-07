@@ -296,3 +296,18 @@ svg.sym { width: 36px; height: 36px; overflow: visible; }
 #buddy.talking .mouth { animation: oxytalk 0.26s ease-in-out infinite; }
 @keyframes oxytalk { 50% { transform: scaleY(1.55) scaleX(0.9); } }
 @media (max-width: 760px) { #buddy { left: 14px; bottom: 96px; } .buddy-bubble { max-width: 220px; font-size: 12px; } }
+
+/* ---- reduced-motion ---- */
+body.reduced-motion .mascot-bob,
+body.reduced-motion .eyes,
+body.reduced-motion .orb { animation: none !important; }
+body.reduced-motion h1 { animation: none !important; text-shadow: 0 0 30px rgba(39,211,255,0.35) !important; }
+body.reduced-motion .modal { animation: none !important; }
+body.reduced-motion #buddy.speaking .buddy-face { animation: none !important; }
+body.reduced-motion #buddy.talking .mouth { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .mascot-bob, .eyes, .orb, h1 { animation-duration: 0.01ms !important; }
+}
+
+/* ---- win share button ---- */
+.btn.ghost.share-btn { min-width: 130px; }

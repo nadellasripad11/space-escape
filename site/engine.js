@@ -17,6 +17,7 @@ const tmpE = new THREE.Euler();
 export class Engine {
   constructor(canvas) {
     this.canvas = canvas;
+    this.reducedMotion = false;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -196,8 +197,9 @@ export class Engine {
     kit.tick(Math.min(dtMs, 100));
     if (this.api && this.api.update) this.api.update(this.time, dt);
     this.mouseSmooth.lerp(this.mouse, 1 - Math.pow(0.001, dt));
-    const mx = this.mouseSmooth.x * this.parallax;
-    const my = this.mouseSmooth.y * this.parallax;
+    const ep = this.reducedMotion ? 0 : this.parallax;
+    const mx = this.mouseSmooth.x * ep;
+    const my = this.mouseSmooth.y * ep;
     const off = new THREE.Vector3(mx * 0.34, my * 0.16, 0).applyQuaternion(this.baseQuat);
     this.camera.position.copy(this.basePos).add(off);
     if (this.shake > 0.0001) {
