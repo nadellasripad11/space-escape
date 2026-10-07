@@ -48,11 +48,11 @@ function fx(parent, alert) {
     c.resize(W, H);
     c.fills = [];
     c.clipsContent = true;
-    for (let y = 0; y < H; y += 4) rect(c, 0, y, W, 1, { fill: '#000000', op: 0.16, name: 'scan' });
+    for (let y = 0; y < H; y += 4) rect(c, 0, y, W, 1, { fill: '#000000', op: 0.1, name: 'scan' });
     rect(c, 0, 0, W, H, {
       fill: radial([
         [0.55, '#000000', 0],
-        [1, '#000000', 0.8],
+        [1, '#000000', 0.55],
       ]),
       name: 'vignette',
     });
@@ -60,7 +60,7 @@ function fx(parent, alert) {
       rect(c, 0, 0, W, H, {
         fill: radial([
           [0.45, C.red, 0],
-          [1, C.red, 0.32],
+          [1, C.red, 0.2],
         ]),
         name: 'alert glow',
       });

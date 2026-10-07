@@ -51,7 +51,7 @@ function drawAirlock(f, open) {
     ellipse(f, 124, 346, 122, 122, { stroke: '#3a5282', sw: 4, name: 'hatch inner' });
     for (let i = 0; i < 3; i++) {
       const a = (i * Math.PI) / 3;
-      path(f, 185, 407, 'M ' + Math.cos(a) * -56 + ' ' + Math.sin(a) * -56 + ' L ' + Math.cos(a) * 56 + ' ' + Math.sin(a) * 56, { stroke: '#7d93b8', sw: 8, name: 'spoke' });
+      line(f, 185 - Math.cos(a) * 56, 407 - Math.sin(a) * 56, 185 + Math.cos(a) * 56, 407 + Math.sin(a) * 56, { stroke: '#7d93b8', sw: 8, name: 'spoke' });
     }
     ellipse(f, 172, 394, 26, 26, { fill: '#9fb4d2', name: 'wheel hub' });
     text(f, 64, 540, 'SEALED', { font: 'head', size: 22, fill: C.red, ls: 6, w: 242, align: 'CENTER', fx: [glow(C.red, 14, 0.8)], name: 'status' });
@@ -63,7 +63,7 @@ function drawAirlock(f, open) {
 
 function drawDeckSign(f) {
   rect(f, 70, 150, 230, 62, { fill: '#1a1405', stroke: C.amber, sw: 2, r: 8, fx: [glow(C.amber, 20, 0.35)], name: 'deck sign' });
-  text(f, 70, 150, 'DECK 07', { font: 'title', size: 30, fill: C.amber, ls: 4, w: 230, align: 'CENTER', lh: 62, fx: [glow(C.amber, 12, 0.7)], name: 'deck text' });
+  text(f, 70, 150, 'DECK 07', { font: 'title', size: 36, fill: '#ffc94d', ls: 4, w: 230, align: 'CENTER', lh: 62, fx: [glow(C.amber, 12, 0.7)], name: 'deck text' });
 }
 
 function drawConsole(f, open) {

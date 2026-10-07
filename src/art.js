@@ -254,7 +254,7 @@ function floorTiles(parent, y) {
   rect(parent, 0, y, W, H - y, {
     fill: linear(
       [
-        [0, '#16223a'],
+        [0, '#1e2f50'],
         [1, '#070c16'],
       ],
       90
@@ -280,8 +280,8 @@ function wallPanels(parent, y0, y1, seed) {
   rect(parent, 0, 0, W, y1, {
     fill: linear(
       [
-        [0, '#0c1424'],
-        [1, '#17243d'],
+        [0, '#111c33'],
+        [1, '#233452'],
       ],
       90
     ),

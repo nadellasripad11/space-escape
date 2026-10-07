@@ -104,6 +104,7 @@ function style(node, o) {
     node.strokes = toPaint(o.stroke);
     node.strokeWeight = o.sw || 1;
     if (node.type !== 'VECTOR') node.strokeAlign = 'INSIDE';
+    if (o.cap) node.strokeCap = o.cap;
   }
   if (o.r !== undefined && 'cornerRadius' in node) node.cornerRadius = o.r;
   if (o.op !== undefined) node.opacity = o.op;
@@ -138,6 +139,20 @@ function path(parent, x, y, d, o) {
   n.x = x;
   n.y = y;
   return style(n, o || {});
+}
+
+function line(parent, x1, y1, x2, y2, o) {
+  const mx = Math.min(x1, x2);
+  const my = Math.min(y1, y2);
+  return path(parent, mx, my, 'M ' + (x1 - mx) + ' ' + (y1 - my) + ' L ' + (x2 - mx) + ' ' + (y2 - my), o);
+}
+
+function curve(parent, x1, y1, x2, y2, o) {
+  const mx = Math.min(x1, x2);
+  const my = Math.min(y1, y2);
+  const ax = x1 - mx, ay = y1 - my, bx = x2 - mx, by = y2 - my;
+  const mid = (ax + bx) / 2;
+  return path(parent, mx, my, 'M ' + ax + ' ' + ay + ' C ' + mid + ' ' + ay + ' ' + mid + ' ' + by + ' ' + bx + ' ' + by, o);
 }
 
 function frame(parent, x, y, w, h, o) {
