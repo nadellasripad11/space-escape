@@ -1,5 +1,6 @@
 // the two live puzzles: airlock keypad and drag-a-wire pod panel
 import { audio } from './audio.js';
+import { buddy } from './buddy.js';
 import { content, SYM, WIRES } from './content.js';
 
 const PIN = '56';
@@ -35,7 +36,7 @@ export function openKeypad(ui) {
       if (k === 'clr') { entered = ''; paint(); audio.click(); return; }
       if (entered.length >= 2) return;
       entered += k;
-      audio.key();
+      audio.dtmf(k);
       paint();
       if (entered.length === 2) {
         locked = true;
@@ -54,6 +55,7 @@ export function openKeypad(ui) {
           root.classList.add('deny');
           sub.textContent = 'WRONG PIN · RESETTING';
           audio.bad();
+          buddy.event('pinWrong');
           await sleep(900);
           root.classList.remove('deny');
           sub.textContent = 'ENTER THE 2-DIGIT PIN';
@@ -149,6 +151,7 @@ export function openWiring(ui) {
       busy = true;
       const w = WIRES[stage];
       if (p === wireTarget[stage]) {
+        audio.plug();
         audio.good();
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', wirePath(144, ys[stage], 720, ys[p]));
@@ -167,6 +170,7 @@ export function openWiring(ui) {
         refresh();
         if (stage === 3) {
           instr.textContent = 'POD POWERED';
+          buddy.event('wired');
           instr.style.color = '#3dff9a';
           await sleep(1000);
           done = true;
@@ -175,6 +179,7 @@ export function openWiring(ui) {
         }
       } else {
         audio.spark();
+        buddy.event('wireShort');
         panel.classList.add('short');
         instr.textContent = 'SHORT CIRCUIT · RESETTING';
         instr.style.color = '#ff3b4e';

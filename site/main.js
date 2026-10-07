@@ -4,6 +4,8 @@ import { ui } from './ui.js';
 import { audio } from './audio.js';
 import { content } from './content.js';
 import { MASCOT } from './mascot-data.js';
+import { buddy } from './buddy.js';
+import { music } from './music.js';
 import * as kit from '../render3d/kit.js';
 
 // oxy: fill every [data-oxy] slot and use the face as the favicon
@@ -30,6 +32,7 @@ let pending = null;
 const IDLE_MS = 9000;
 let lastActivity = performance.now();
 let guideSig = '';
+let lastSay = 0;
 
 function markActivity() {
   lastActivity = performance.now();
@@ -42,6 +45,7 @@ function guideTick() {
   const sig = data.doneCount + '|' + data.current + '|' + (data.now || '');
   if (sig !== guideSig) { guideSig = sig; ui.renderGuide(data); }
   const idle = performance.now() - lastActivity >= IDLE_MS;
+  if (idle && data.now && performance.now() - lastSay > 22000) { lastSay = performance.now(); buddy.say(data.now, 'worried', { prio: 0.8 }); }
   ui.guidePulse(idle && !!data.now && !ui.guideCollapsed());
 }
 setInterval(guideTick, 500);
@@ -62,7 +66,7 @@ function hoverTick() {
       hoverName = name;
       engine.setHover(hit);
       canvas.classList.toggle('hot', !!hit);
-      if (hit) audio.hover();
+      if (hit) { audio.hover(); buddy.hover(name); }
     }
     if (hit) ui.tip(game.labels[name] || name.toUpperCase(), e.clientX, e.clientY);
     else ui.tipOff();
@@ -85,6 +89,7 @@ document.addEventListener('keydown', (e) => {
   markActivity();
   if (e.key === 'Escape') ui.closeTop();
   else if (e.key === 'm' || e.key === 'M') toggleMute();
+  else if (e.key === 'n' || e.key === 'N') toggleMusic();
   else if ((e.key === 'h' || e.key === 'H') && game.S.running) game.hint();
 });
 
@@ -95,6 +100,17 @@ function toggleMute() {
 document.getElementById('mute').classList.toggle('off', audio.muted);
 document.getElementById('mute').addEventListener('click', toggleMute);
 document.getElementById('hint').addEventListener('click', () => game.hint());
+function toggleMusic() {
+  music.setEnabled(!music.enabled);
+  document.getElementById('music').classList.toggle('off', !music.enabled);
+}
+document.getElementById('music').classList.toggle('off', !music.enabled);
+document.getElementById('music').addEventListener('click', toggleMusic);
+document.querySelector('#buddy .buddy-face').addEventListener('click', () => buddy.poke());
+// sound can only start after the first click or key press
+const firstGesture = () => { audio.unlock(); if (game.S.room === 'title') music.play('title'); };
+document.addEventListener('pointerdown', firstGesture, { once: true });
+document.addEventListener('keydown', firstGesture, { once: true });
 document.querySelector('#guide .guide-head').addEventListener('click', () => { audio.click(); ui.toggleGuide(); markActivity(); });
 try { ui.toggleGuide(localStorage.getItem('omega7-guide-collapsed') !== '0'); } catch (e) { ui.toggleGuide(true); }
 document.getElementById('about').addEventListener('click', () => { audio.unlock(); audio.click(); ui.modal(content.about()); });

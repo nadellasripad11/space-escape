@@ -4,6 +4,8 @@ import { audio } from './audio.js';
 import { ui, sleep } from './ui.js';
 import { content } from './content.js';
 import { oxy } from './oxy.js';
+import { buddy } from './buddy.js';
+import { music } from './music.js';
 import { openKeypad, openWiring } from './puzzles.js';
 
 const TOTAL = 420; // seconds of air
@@ -30,6 +32,7 @@ export function createGame(engine) {
     terminal: 'TERMINAL', whiteboard: 'WHITEBOARD', airlock: 'AIRLOCK', decksign: 'DECK SIGN',
     manual: 'MANUAL', panel: 'CONTROL PANEL', hatch: 'HATCH', launchbtn: 'LAUNCH',
   };
+  const LOOKS = new Set(['poster', 'bunk', 'porthole', 'whiteboard', 'manual']);
   const ROOM_LABEL = { quarters: 'SLEEPING QUARTERS', control: 'CONTROL ROOM', pod: 'ESCAPE POD BAY', space: 'OPEN SPACE' };
 
   const names = () => {
@@ -43,8 +46,6 @@ export function createGame(engine) {
 
   async function enterRoom(room) {
     S.room = room;
-    audio.alarm(false);
-    audio.hum(false);
     let scene = room;
     let state = '';
     if (room === 'quarters') state = S.locker === 'open' ? 'open' : S.hasCard ? 'empty' : 'closed';
@@ -54,8 +55,8 @@ export function createGame(engine) {
     engine.markHome();
     refreshAllowed();
     ui.setRoom(ROOM_LABEL[room] || '');
-    if (room === 'quarters') audio.alarm(true);
-    else if (room !== 'space') audio.hum(true);
+    audio.ambience(room);
+    music.play(room);
   }
 
   async function goto(room, fromObj) {
@@ -86,15 +87,17 @@ export function createGame(engine) {
     audio.click();
     const key = S.room + ':' + name;
     S.log.push(key);
+    if (LOOKS.has(name)) buddy.event('look:' + name);
     switch (key) {
       case 'quarters:locker':
         if (S.locker === 'closed') {
           S.busy = true;
-          audio.thunk();
+          audio.clang();
           await engine.api.openLocker();
           S.locker = 'open';
           audio.good();
           ui.toast('The locker pops. Something is glinting on the shelf.', 'good');
+          buddy.event('locker');
           S.busy = false;
           refreshAllowed();
         } else if (S.locker === 'open') ui.toast('Something is glinting on the shelf. Take it.');
@@ -112,6 +115,7 @@ export function createGame(engine) {
         ui.setCard(true);
         audio.good();
         ui.toast('KEYCARD ACQUIRED. LEVEL 2 CLEARANCE', 'good');
+        buddy.event('keycard');
         S.busy = false;
         break;
       }
@@ -120,13 +124,16 @@ export function createGame(engine) {
           audio.bad();
           engine.shake = 0.06;
           ui.toast('Magnetic lock. It wants a keycard.', 'bad');
+          buddy.event('doorLocked');
         } else {
           audio.good();
           ui.toast('Keycard accepted. The door slides open.', 'good', 1800);
+          audio.hiss(0.8);
+          buddy.event('doorOpen');
           await goto('control', o);
         }
         break;
-      case 'quarters:vent': ui.toast('Too small to crawl through. Nothing in there but dust.'); break;
+      case 'quarters:vent': ui.toast('Too small to crawl through. Nothing in there but dust.'); buddy.event('vent'); break;
       case 'quarters:poster': await closeup(o, content.poster(), { dist: 2.1 }); break;
       case 'quarters:bunk': await closeup(o, content.diary(), { dist: 3.2 }); break;
       case 'quarters:porthole': await closeup(o, content.porthole(), { dist: 2.0 }); break;
@@ -138,6 +145,7 @@ export function createGame(engine) {
           audio.bad();
           engine.shake = 0.05;
           ui.toast('Airlock sealed. The terminal must control it.', 'bad');
+          buddy.event('airlockSealed');
         } else {
           await goto('pod', o);
         }
@@ -149,6 +157,7 @@ export function createGame(engine) {
         await engine.focus(o, 1.9, 750);
         S.busy = false;
         {
+          buddy.event('keypad');
           const ok = await openKeypad(ui);
           if (!ok) { engine.reset(650); break; }
           S.busy = true;
@@ -156,6 +165,9 @@ export function createGame(engine) {
           engine.api.setTerminal(['> AIRLOCK 03', '> VERIFYING PIN...', '> PIN OK', '> _']);
           await engine.reset(700);
           audio.thunk();
+          audio.servo();
+          audio.hiss(1.0);
+          buddy.event('pinRight');
           ui.toast('ACCESS GRANTED. Airlock seal released.', 'good');
           await engine.api.openAnimated();
           S.airlockOpen = true;
@@ -165,7 +177,7 @@ export function createGame(engine) {
 
       case 'pod:manual': await closeup(o, content.manual(), { dist: 2.0 }); break;
       case 'pod:hatch':
-        if (!S.powered) { audio.bad(); engine.shake = 0.05; ui.toast('Hatch is sealed. There is no power to the pod.', 'bad'); }
+        if (!S.powered) { audio.bad(); engine.shake = 0.05; ui.toast('Hatch is sealed. There is no power to the pod.', 'bad'); buddy.event('hatchLocked'); }
         else await launch();
         break;
       case 'pod:launchbtn': await launch(); break;
@@ -176,6 +188,7 @@ export function createGame(engine) {
         await engine.focus(o, 3.0, 750);
         S.busy = false;
         {
+          buddy.event('wiring');
           const ok = await openWiring(ui);
           if (!ok) { engine.reset(650); break; }
           S.busy = true;
@@ -198,6 +211,7 @@ export function createGame(engine) {
     refreshAllowed();
     const api = engine.api;
     audio.alarm(false);
+    buddy.event('launch');
     await engine.focus(api.pod, 5.2, 1000);
     api.pod.userData.flame.visible = true;
     audio.rumble(true);
@@ -231,6 +245,8 @@ export function createGame(engine) {
     S.over = true;
     S.running = false;
     ui.showGuide(false);
+    buddy.show(false);
+    audio.ambience('none');
     audio.hum(false);
     audio.good();
     const st = stats();
@@ -254,6 +270,9 @@ export function createGame(engine) {
     S.over = true;
     S.running = false;
     ui.showGuide(false);
+    buddy.show(false);
+    music.stop();
+    audio.ambience('none');
     refreshAllowed();
     audio.alarm(false);
     audio.hum(false);
@@ -284,6 +303,8 @@ export function createGame(engine) {
     ui.eyes();
     await ui.fade(false, 150);
     ui.toast('Alarms. A throbbing head. Look around: something must open.', null, 5200);
+    buddy.show(true);
+    buddy.event('start');
     S.busy = false;
   }
 
@@ -338,6 +359,10 @@ export function createGame(engine) {
   engine.onFrame = (dt) => {
     if (!S.running || S.over || S.room === 'space') return;
     if (!S.launching) S.o2 -= dt;
+    if (!S.said50 && S.o2 < TOTAL * 0.5) { S.said50 = true; buddy.event('o2_50'); }
+    if (!S.said25 && S.o2 < TOTAL * 0.25) { S.said25 = true; buddy.event('o2_25'); }
+    if (!S.said10 && S.o2 < TOTAL * 0.1) { S.said10 = true; buddy.event('o2_10'); }
+    music.setIntensity(1 - S.o2 / TOTAL);
     if (S.o2 <= 0) { S.o2 = 0; lose(); }
     ui.setO2(S.o2 / TOTAL, S.o2);
   };

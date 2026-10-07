@@ -26,7 +26,7 @@
       <circle cx="137" cy="112" r="3.4" fill="#fff" fill-opacity="0.95"/>
       <circle cx="138" cy="94" r="1.8" fill="#fff" fill-opacity="0.8"/></g>
     <ellipse cx="42" cy="128" rx="16" ry="10" fill="url(#oicheek)"/><ellipse cx="158" cy="128" rx="16" ry="10" fill="url(#oicheek)"/>
-    <path d="M 89 128 Q 94.5 138 100 128 Q 105.5 138 111 128" fill="none" stroke="#0f2147" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <g class="mouth"><path d="M 89 128 Q 94.5 138 100 128 Q 105.5 138 111 128" fill="none" stroke="#0f2147" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></g>
     
   </g>
 </svg>

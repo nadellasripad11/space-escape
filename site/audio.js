@@ -44,8 +44,116 @@ function blip(freq, dur, type, vol, slideTo, when) {
   o.stop(t + dur + 0.05);
 }
 
+export function _ctx() {
+  ensure();
+  return { ctx, master };
+}
+
+function burst(dur, freq, vol, type) {
+  if (!ensure()) return;
+  const t = ctx.currentTime;
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffer(dur + 0.05);
+  const f = ctx.createBiquadFilter();
+  f.type = type || 'bandpass';
+  f.frequency.value = freq;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(f).connect(g).connect(master);
+  src.start(t);
+}
+
+let beepT = 0;
+let creakT = 0;
+let reactorNodes = null;
+
+// the control room's computers chirp now and then
+function beeper(on) {
+  clearTimeout(beepT);
+  if (!on) return;
+  const go = () => {
+    blip(1500 + Math.random() * 1800, 0.06, 'square', 0.03);
+    if (Math.random() < 0.5) blip(1100 + Math.random() * 900, 0.05, 'square', 0.025, null, 0.12);
+    beepT = setTimeout(go, 3500 + Math.random() * 6000);
+  };
+  beepT = setTimeout(go, 1800);
+}
+
+// the quarters creak like a ship that is slowly coming apart
+function creaks(on) {
+  clearTimeout(creakT);
+  if (!on) return;
+  const go = () => {
+    burst(0.5, 160 + Math.random() * 120, 0.12, 'lowpass');
+    blip(80 + Math.random() * 40, 0.4, 'sawtooth', 0.025, 55);
+    creakT = setTimeout(go, 5000 + Math.random() * 7000);
+  };
+  creakT = setTimeout(go, 3500);
+}
+
+// the pod bay has a reactor humming under the floor
+function reactor(on) {
+  if (!ensure()) return;
+  if (on && !reactorNodes) {
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.value = 41;
+    const o2 = ctx.createOscillator();
+    o2.type = 'sine';
+    o2.frequency.value = 82.5;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 170;
+    const g = ctx.createGain();
+    g.gain.value = 0.0001;
+    g.gain.setTargetAtTime(0.06, ctx.currentTime, 1.2);
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.35;
+    const lg = ctx.createGain();
+    lg.gain.value = 0.02;
+    lfo.connect(lg).connect(g.gain);
+    o.connect(lp);
+    o2.connect(lp);
+    lp.connect(g).connect(master);
+    o.start(); o2.start(); lfo.start();
+    reactorNodes = { o, o2, lfo, g };
+  } else if (!on && reactorNodes) {
+    const n = reactorNodes;
+    reactorNodes = null;
+    n.g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.3);
+    setTimeout(() => { n.o.stop(); n.o2.stop(); n.lfo.stop(); }, 1200);
+  }
+}
+
 export const audio = {
   unlock: ensure,
+  // oxy talking: a little babble blip, pitched by mood
+  chirp(expr) {
+    const base = { idle: 640, happy: 800, worried: 520, dizzy: 420 }[expr] || 640;
+    const f = base * (0.88 + Math.random() * 0.4);
+    blip(f, 0.075, 'triangle', 0.06, f * (expr === 'worried' ? 0.82 : 1.18));
+  },
+  clang() { blip(240, 0.45, 'square', 0.09, 150); blip(1330, 0.3, 'sine', 0.08, null, 0.01); burst(0.1, 2200, 0.16); },
+  hiss(len) { burst(len || 0.7, 5200, 0.12, 'highpass'); },
+  servo() { blip(110, 0.8, 'sawtooth', 0.05, 260); },
+  plug() { blip(300, 0.06, 'square', 0.09, 120); blip(900, 0.08, 'triangle', 0.07, null, 0.04); },
+  // keypad keys sound like a phone's two-tone keys
+  dtmf(k) {
+    const rows = [697, 770, 852, 941];
+    const cols = [1209, 1336, 1477];
+    const n = k === 'clr' || k === '0' ? 10 : Number(k) - 1;
+    blip(rows[Math.floor(n / 3) % 4], 0.09, 'sine', 0.09);
+    blip(cols[n % 3], 0.09, 'sine', 0.09);
+  },
+  // each room gets its own bed of sound
+  ambience(name) {
+    this.alarm(name === 'quarters');
+    this.hum(name === 'control' || name === 'pod');
+    beeper(name === 'control');
+    creaks(name === 'quarters');
+    reactor(name === 'pod');
+  },
   get muted() { return muted; },
   setMuted(m) {
     muted = m;

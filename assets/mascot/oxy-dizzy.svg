@@ -18,7 +18,7 @@
     <ellipse cx="68" cy="60" rx="30" ry="11" transform="rotate(-18 68 60)" fill="#fff" fill-opacity="0.6"/>
     <g class="eyes"><path d="M 70 104 m -2 0 a 3 3 0 1 1 6 0 a 6.5 6.5 0 1 1 -13 0 a 10 10 0 1 1 20 0 a 13.5 13.5 0 1 1 -27 0" fill="none" stroke="#0f2147" stroke-width="3" stroke-linecap="round"/><path d="M 130 104 m -2 0 a 3 3 0 1 1 6 0 a 6.5 6.5 0 1 1 -13 0 a 10 10 0 1 1 20 0 a 13.5 13.5 0 1 1 -27 0" fill="none" stroke="#0f2147" stroke-width="3" stroke-linecap="round"/></g>
     <ellipse cx="42" cy="128" rx="16" ry="10" fill="url(#odcheek)"/><ellipse cx="158" cy="128" rx="16" ry="10" fill="url(#odcheek)"/>
-    <path d="M 82 134 Q 91 124 100 134 Q 109 144 118 134" fill="none" stroke="#0f2147" stroke-width="3.4" stroke-linecap="round"/>
+    <g class="mouth"><path d="M 82 134 Q 91 124 100 134 Q 109 144 118 134" fill="none" stroke="#0f2147" stroke-width="3.4" stroke-linecap="round"/></g>
     <path d="M 52 33 L 54.1 37.9 L 59 40 L 54.1 42.1 L 52 47 L 49.9 42.1 L 45 40 L 49.9 37.9 Z" fill="#ffd23b"/><path d="M 100 25 L 101.5 28.5 L 105 30 L 101.5 31.5 L 100 35 L 98.5 31.5 L 95 30 L 98.5 28.5 Z" fill="#ffd23b"/><path d="M 150 33 L 152.1 37.9 L 157 40 L 152.1 42.1 L 150 47 L 147.9 42.1 L 143 40 L 147.9 37.9 Z" fill="#ffd23b"/>
   </g>
 </svg>

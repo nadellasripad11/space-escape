@@ -57,6 +57,8 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   await sleep(1600);
   s = await S();
   check('locker opens', s.locker === 'open');
+  check('oxy speaks after the locker', await page.evaluate('document.querySelector("#buddy .buddy-bubble").textContent.length > 0 && !document.getElementById("buddy").hidden'));
+  check('quarters music is playing', (await page.evaluate("import('./music.js').then((m) => m.music.current)")) === 'quarters');
   await shot('03_locker_open');
   await act('keycard');
   await sleep(1500);

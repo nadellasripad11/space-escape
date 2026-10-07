@@ -80,7 +80,7 @@ function svg(expr, o) {
     <ellipse cx="68" cy="60" rx="30" ry="11" transform="rotate(-18 68 60)" fill="#fff" fill-opacity="0.6"/>
     ${eyes(expr, id)}
     <ellipse cx="42" cy="128" rx="16" ry="10" fill="url(#${id}cheek)"/><ellipse cx="158" cy="128" rx="16" ry="10" fill="url(#${id}cheek)"/>
-    ${mouth(expr, id)}
+    <g class="mouth">${mouth(expr, id)}</g>
     ${extras(expr)}
   </g>
 </svg>`;
