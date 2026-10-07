@@ -34,3 +34,7 @@ crew 8 x deck 7 = pin 56, then wires red > triangle, blue > square, yellow > cir
 ## testing without figma
 
 `node tools/mock-figma.js [outDir] [--sheet frameKey ...]` runs the plugin against a small fake of the figma api, plays through the prototype links (solution, wrong pins, wrong wires, hints, close-ups) and can render frames to png (`HOT=1` outlines the hotspots). needs `npm install` inside `tools/` once.
+
+## oxy, the mascot
+
+a little face-only buddy with four moods (idle, happy, worried, dizzy). `node tools/mascot.js` generates `assets/mascot/*.svg` plus the data files used by the website and the figma plugin. he greets you on the title screen, helps in the mission checklist and hint cards, and reacts on the win and lose screens.

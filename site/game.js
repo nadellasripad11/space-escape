@@ -3,6 +3,7 @@ import * as kit from '../render3d/kit.js';
 import { audio } from './audio.js';
 import { ui, sleep } from './ui.js';
 import { content } from './content.js';
+import { oxy } from './oxy.js';
 import { openKeypad, openWiring } from './puzzles.js';
 
 const TOTAL = 420; // seconds of air
@@ -240,8 +241,8 @@ export function createGame(engine) {
       best = Math.min(prev || st.time, st.time);
     } catch (e) { /* ignore */ }
     ui.modal(`
-      <div class="panel glass endcard">
-        <div class="eb" style="color:var(--green)">ESCAPE SUCCESSFUL</div>
+      <div class="panel glass endcard has-oxy">
+        ${oxy('happy', 128, 'oxy-top')}<div class="eb" style="color:var(--green)">ESCAPE SUCCESSFUL</div>
         <h2>YOU MADE IT.</h2>
         <p>Station Omega-7 came apart four minutes later.<br>You were the only survivor.</p>
         <div class="stats"><div><b>${mmss(st.time)}</b>TIME</div><div><b>${mmss(st.left)}</b>AIR LEFT</div><div><b>${st.hints}</b>HINTS</div><div><b>${mmss(best)}</b>BEST</div></div>
@@ -261,8 +262,8 @@ export function createGame(engine) {
     ui.countdown(null);
     await ui.fade(true, 1400);
     const m = ui.modal(`
-      <div class="panel glass endcard" style="border-color:rgba(255,59,78,.6)">
-        <div class="eb" style="color:var(--red)">O2 0%</div>
+      <div class="panel glass endcard has-oxy" style="border-color:rgba(255,59,78,.6)">
+        ${oxy('dizzy', 128, 'oxy-top')}<div class="eb" style="color:var(--red)">O2 0%</div>
         <h2 style="color:var(--red)">OXYGEN DEPLETED</h2>
         <p>You stopped moving. The station did not.</p>
         <div class="row"><button class="btn red" id="again">TRY AGAIN</button></div>

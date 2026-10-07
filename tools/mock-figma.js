@@ -95,6 +95,7 @@ function makeFigma() {
     createPage: () => mkPage('Page'),
     setCurrentPageAsync: async (p) => { f.currentPage = p; },
     loadFontAsync: async () => {},
+    createNodeFromSvg: (svg) => { if (typeof svg !== 'string' || !svg.startsWith('<svg')) throw new Error('createNodeFromSvg needs an svg string'); const n = new MockNode('FRAME'); n._svg = svg; n.clipsContent = false; n.resize(200, 200); return n; },
     base64Decode: (b) => Buffer.from(b, 'base64'),
     createImage: (bytes) => { const hash = 'img' + (f._imgs.length); f._imgs.push(Buffer.from(bytes)); return { hash }; },
     _imgs: [],
@@ -225,6 +226,7 @@ function render(frame, prefix) {
   let clipN = 0;
   const draw = (node) => {
     if (node.visible === false) return '';
+    if (node._svg) return '<g transform="translate(' + fmt(node.x) + ' ' + fmt(node.y) + ')"><image width="' + node.width + '" height="' + node.height + '" xlink:href="data:image/svg+xml;base64,' + Buffer.from(node._svg).toString('base64') + '"/></g>';
     const tf = 'translate(' + fmt(node.x) + ' ' + fmt(node.y) + ')' + (node.rotation ? ' rotate(' + -node.rotation + ')' : '');
     let body = '';
     const dbg = process.env.HOT && node.name.startsWith('hotspot') ? '<rect width="' + node.width + '" height="' + node.height + '" fill="rgba(255,0,80,0.16)" stroke="#ff1a66" stroke-width="3"/><text x="6" y="22" font-size="20" font-family="Arial" fill="#fff" stroke="#000" stroke-width="0.8">' + node.name.replace('hotspot / ', '') + '</text>' : '';
@@ -246,7 +248,7 @@ function render(frame, prefix) {
     return '<g transform="' + tf + '"' + (node.opacity !== 1 ? ' opacity="' + node.opacity + '"' : '') + fb + '>' + body + '</g>';
   };
   const inner = draw(Object.assign(Object.create(frame), { x: 0, y: 0 }));
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="' + frame.width + '" height="' + frame.height + '" viewBox="0 0 ' + frame.width + ' ' + frame.height + '"><defs>' + defs + '</defs>' + inner + '</svg>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + frame.width + '" height="' + frame.height + '" viewBox="0 0 ' + frame.width + ' ' + frame.height + '"><defs>' + defs + '</defs>' + inner + '</svg>';
 }
 
 // ---- driver ---------------------------------------------------------------------
@@ -266,6 +268,7 @@ async function main() {
   const page = figma.currentPage;
   const frames = page.children.filter((n) => n.type === 'FRAME');
   const hot = page.findAll((n) => n.name.startsWith('hotspot'));
+  console.log('svg nodes', page.findAll((n) => n._svg).length);
   console.log('frames', frames.length, 'hotspots', hot.length, 'with reactions', hot.filter((h) => h.reactions.length).length);
   const t = require('./selftest')(page);
   t.results.forEach((r) => console.log((r.ok ? 'PASS ' : 'FAIL ') + r.name + (r.ok ? '' : '  got ' + r.got + ' want ' + r.want)));
@@ -280,7 +283,7 @@ async function main() {
       const svg = render(f, 's' + i + '_').replace(/^<svg [^>]*>/, '<svg x="' + (i % 2) * 720 + '" y="' + Math.floor(i / 2) * 450 + '" width="720" height="450" viewBox="0 0 1440 900">');
       body += svg;
     });
-    const sheetSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="' + rows * 450 + '">' + body + '</svg>';
+    const sheetSvg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1440" height="' + rows * 450 + '">' + body + '</svg>';
     const png = new Resvg(sheetSvg, { font: { loadSystemFonts: true } }).render().asPng();
     fs.writeFileSync(path.join(outDir, 'sheet_' + sheet[0] + '.png'), png);
     console.log('sheet written');
@@ -290,6 +293,7 @@ async function main() {
     const key = f.name.split(' · ')[0];
     if (keys.length && !keys.includes(key)) continue;
     const svg = render(f);
+    if (process.env.DUMP) fs.writeFileSync(path.join(outDir, key + '.svg'), svg);
     const png = new Resvg(svg, { font: { loadSystemFonts: true }, fitTo: { mode: 'width', value: 1440 } }).render().asPng();
     fs.writeFileSync(path.join(outDir, key + '.png'), png);
   }

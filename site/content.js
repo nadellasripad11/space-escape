@@ -1,4 +1,6 @@
 // html for the readable objects (poster, whiteboard, log, porthole, manual, hints, about)
+import { oxy } from './oxy.js';
+
 export const SYM = {
   circle: (c) => `<svg class="sym" viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="${c}"/></svg>`,
   tri: (c) => `<svg class="sym" viewBox="0 0 36 36"><path d="M18 2 L34 34 L2 34 Z" fill="${c}"/></svg>`,
@@ -58,12 +60,12 @@ export const content = {
       control: ['CONTROL ROOM', ['The terminal wants two digits.', 'One number is how many crew there were. The other is on a sign.', 'The whiteboard says what to do with them.']],
       pod: ['POD BAY', ['The panel is dead because three wires are unplugged.', 'The manual shows which symbol each color belongs to.', 'Connect them in the order the manual gives: red, blue, yellow.']],
     }[room] || ['STUCK?', ['Click the glowing things.', 'Read everything twice.']];
-    return `<div class="panel glass hintcard"><div class="eb">NEED A NUDGE?</div><h2>${H[0]}</h2><ul>${H[1].map((l) => `<li>${l}</li>`).join('')}</ul><div class="foot">HINTS ARE FREE. OXYGEN IS NOT.</div></div>`;
+    return `<div class="panel glass hintcard has-oxy">${oxy('worried', 104, 'oxy-top')}<div class="eb">NEED A NUDGE?</div><h2>${H[0]}</h2><ul>${H[1].map((l) => `<li>${l}</li>`).join('')}</ul><div class="foot">HINTS ARE FREE. OXYGEN IS NOT.</div></div>`;
   },
 
   about: () => `
-    <div class="panel glass hintcard about">
-      <div class="eb">THE WRONG TOOL</div>
+    <div class="panel glass hintcard about has-oxy">
+      ${oxy('happy', 104, 'oxy-top')}<div class="eb">THE WRONG TOOL</div>
       <h2>HOW THIS WAS BUILT</h2>
       <ul>
         <li>No game engine. Every room is a three.js scene made of boxes, lathes and canvas textures.</li>

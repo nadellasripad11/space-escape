@@ -77,6 +77,12 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   s = await S();
   check('door -> control room', s.room === 'control');
   await shot('05_control');
+  await page.click('#hint');
+  await sleep(1300);
+  check('hint card shows oxy', await page.evaluate('document.querySelector(".hintcard .mascot") !== null'));
+  await shot('05b_hint');
+  await page.keyboard.press('Escape');
+  await sleep(700);
 
   await act('airlock');
   await sleep(400);

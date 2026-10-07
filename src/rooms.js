@@ -4,6 +4,9 @@ function buildTitle() {
   const f = mk('title', '00 / Title', 0, 0);
   bgImage(f, 'title');
   rect(f, 0, 0, 980, 900, { fill: linear([[0, '#02050b', 0.78], [1, '#02050b', 0]], 0), name: 'text shade' });
+  oxy(f, 120, 112, 118, 'happy');
+  glass(f, 258, 150, 372, 70, { r: 22, op: 0.62, blur: 14, shadow: false, name: 'oxy bubble' });
+  text(f, 280, 150, "hi! i'm oxy.\nkeep an eye on the air, ok?", { font: 'mono', size: 16, lh: 24, fill: C.white, name: 'oxy line' }).y = 168;
   text(f, 120, 262, 'A FIGMA ESCAPE ROOM', { font: 'mono', size: 16, fill: C.cyan, ls: 8, name: 'eyebrow' });
   text(f, 112, 300, 'OMEGA-7', { font: 'title', size: 150, fill: C.white, ls: 6, fx: [glow(C.cyan, 40, 0.35)], name: 'title' });
   text(f, 120, 500, 'You wake up alone.\nOxygen is falling. Find the escape pod.', { font: 'body', size: 26, lh: 40, fill: '#a9c3e6', name: 'tagline' });

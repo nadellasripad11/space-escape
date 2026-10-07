@@ -24,6 +24,7 @@ function buildWin() {
   const f = mk('win', '13 / You made it', 1, 0);
   bgImage(f, 'space');
   dim(f, 0.25);
+  oxy(f, 656, 28, 128, 'happy');
   text(f, 0, 190, 'ESCAPE SUCCESSFUL', { font: 'mono', size: 18, fill: C.green, ls: 10, w: W, align: 'CENTER', name: 'eyebrow' });
   text(f, 0, 230, 'YOU MADE IT.', { font: 'title', size: 150, fill: C.white, ls: 4, w: W, align: 'CENTER', fx: [glow(C.green, 50, 0.35)], name: 'title' });
   text(f, 0, 420, 'Station Omega-7 came apart four minutes later.\nYou were the only survivor.', { font: 'body', size: 28, lh: 42, fill: '#c3d6f0', w: W, align: 'CENTER', name: 'epilogue' });
@@ -41,6 +42,7 @@ function buildLose() {
   const b = bgImage(f, 'quarters_closed');
   b.effects = [{ type: 'LAYER_BLUR', radius: 8, visible: true }];
   dim(f, 0.78, '#2a0508');
+  oxy(f, 656, 108, 128, 'dizzy');
   text(f, 0, 270, 'O2  0%', { font: 'mono', size: 18, fill: C.red, ls: 10, w: W, align: 'CENTER', name: 'eyebrow' });
   text(f, 0, 310, 'OXYGEN DEPLETED', { font: 'title', size: 110, fill: C.red, ls: 4, w: W, align: 'CENTER', fx: [glow(C.red, 50, 0.5)], name: 'title' });
   text(f, 0, 460, 'You stopped moving. The station did not.', { font: 'body', size: 28, fill: '#c3d6f0', w: W, align: 'CENTER', name: 'sub' });

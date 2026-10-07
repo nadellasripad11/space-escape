@@ -3,7 +3,16 @@ import { createGame } from './game.js';
 import { ui } from './ui.js';
 import { audio } from './audio.js';
 import { content } from './content.js';
+import { MASCOT } from './mascot-data.js';
 import * as kit from '../render3d/kit.js';
+
+// oxy: fill every [data-oxy] slot and use the face as the favicon
+document.querySelectorAll('[data-oxy]').forEach((el) => {
+  el.innerHTML = MASCOT[el.dataset.oxy];
+  if (el.dataset.px) { el.style.width = el.dataset.px + 'px'; el.style.height = el.dataset.px + 'px'; }
+});
+const icon = document.querySelector('link[rel=icon]');
+if (icon) icon.href = 'data:image/svg+xml,' + encodeURIComponent(MASCOT.idle);
 
 const canvas = document.getElementById('gl');
 const engine = new Engine(canvas);

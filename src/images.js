@@ -60,3 +60,14 @@ function hotRegion(parent, region, name, pad, minSize) {
   h = Math.min(h, 900 - y);
   return hotspot(parent, x, y, w, h, name);
 }
+
+// oxy the mascot (face only), imported as editable vectors
+function oxy(parent, x, y, size, expr, name) {
+  const n = figma.createNodeFromSvg(MASCOT[expr || 'idle']);
+  parent.appendChild(n);
+  n.resize(size, size);
+  n.x = x;
+  n.y = y;
+  n.name = name || 'oxy · ' + (expr || 'idle');
+  return n;
+}

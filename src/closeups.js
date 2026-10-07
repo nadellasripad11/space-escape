@@ -101,6 +101,7 @@ function hintFrame(key, name, col, row, bg, title, lines) {
   b.effects = [{ type: 'LAYER_BLUR', radius: 22, visible: true }];
   dim(f, 0.5);
   glass(f, 270, 170, 900, 540, { r: 28, op: 0.7, glow: C.cyan, glowA: 0.16, name: 'card' });
+  oxy(f, 670, 92, 104, 'worried');
   text(f, 270, 218, 'NEED A NUDGE?', { font: 'mono', size: 16, fill: C.cyan, ls: 8, w: 900, align: 'CENTER', name: 'eyebrow' });
   text(f, 270, 252, title, { font: 'title', size: 44, fill: C.white, ls: 3, w: 900, align: 'CENTER', name: 'title' });
   lines.forEach((ln, i) => {
@@ -136,6 +137,7 @@ function buildAbout() {
   b.effects = [{ type: 'LAYER_BLUR', radius: 10, visible: true }];
   dim(f, 0.4);
   glass(f, 270, 150, 900, 600, { r: 28, op: 0.7, glow: C.cyan, glowA: 0.16, name: 'card' });
+  oxy(f, 670, 50, 104, 'happy');
   text(f, 270, 196, 'THE WRONG TOOL', { font: 'mono', size: 16, fill: C.cyan, ls: 8, w: 900, align: 'CENTER', name: 'eyebrow' });
   text(f, 270, 230, 'HOW THIS WAS BUILT', { font: 'title', size: 44, fill: C.white, ls: 3, w: 900, align: 'CENTER', name: 'title' });
   const lines = [

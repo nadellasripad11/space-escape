@@ -1,5 +1,6 @@
 // dom layer: hud, toasts, tooltips, fades, modals
 import { audio } from './audio.js';
+import { MASCOT } from './mascot-data.js';
 
 const $ = (s) => document.querySelector(s);
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -70,7 +71,12 @@ export const ui = {
     g.querySelector('.guide-now-text').textContent = data.now || '';
     now.classList.toggle('hide', !data.now);
   },
-  guidePulse(on) { $('#guide').classList.toggle('nudge', !!on); },
+  guidePulse(on) {
+    const g = $('#guide');
+    const was = g.classList.contains('nudge');
+    g.classList.toggle('nudge', !!on);
+    if (was !== !!on) g.querySelector('.guide-now-ico').innerHTML = MASCOT[on ? 'worried' : 'idle'];
+  },
   guideCollapsed() { return $('#guide').classList.contains('collapsed'); },
   toggleGuide(force) {
     const g = $('#guide');

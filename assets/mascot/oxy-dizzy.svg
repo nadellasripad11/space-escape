@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="oxy the mascot (dizzy)"><style>.mascot-bob{animation:bob 3.2s ease-in-out infinite;transform-origin:100px 190px}.eyes{transform-origin:100px 104px;animation:blink 4.6s infinite}.orb{animation:orb 1.6s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-4px)}}@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}@keyframes orb{50%{opacity:.55}}</style><defs>
+    <radialGradient id="odface" cx="0.38" cy="0.28" r="0.85"><stop offset="0" stop-color="#ffffff"/><stop offset="0.5" stop-color="#e3f3ff"/><stop offset="1" stop-color="#8ecbf6"/></radialGradient>
+    <radialGradient id="odglow" cx="0.5" cy="0.5" r="0.5"><stop offset="0.45" stop-color="#27d3ff" stop-opacity="0.32"/><stop offset="1" stop-color="#27d3ff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="odeye" cx="0.5" cy="0.78" r="0.7"><stop offset="0" stop-color="#5a86ff"/><stop offset="0.55" stop-color="#1f3a85"/><stop offset="1" stop-color="#0f2147"/></radialGradient>
+    <radialGradient id="odcheek" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ff6f9c" stop-opacity="0.9"/><stop offset="1" stop-color="#ff6f9c" stop-opacity="0"/></radialGradient>
+    <radialGradient id="odorb" cx="0.4" cy="0.35" r="0.7"><stop offset="0" stop-color="#fff6c2"/><stop offset="0.6" stop-color="#ffd23b"/><stop offset="1" stop-color="#ff9f1a"/></radialGradient>
+    <linearGradient id="odear" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#ff9f1a"/></linearGradient>
+  </defs>
+  <g class="mascot-bob">
+    <circle cx="100" cy="108" r="98" fill="url(#odglow)"/>
+    <ellipse cx="100" cy="188" rx="46" ry="6" fill="#000" fill-opacity="0.22"/>
+    <rect x="96.5" y="14" width="7" height="22" rx="3.5" fill="#5b86c4"/>
+    <circle class="orb" cx="100" cy="12" r="9.5" fill="url(#odorb)"/>
+    <circle cx="97" cy="9" r="3" fill="#fff" fill-opacity="0.9"/>
+    <circle cx="17" cy="112" r="12" fill="url(#odear)" stroke="#c27d00" stroke-width="2.5"/><circle cx="17" cy="112" r="4.5" fill="#fff4cf" fill-opacity="0.8"/>
+    <circle cx="183" cy="112" r="12" fill="url(#odear)" stroke="#c27d00" stroke-width="2.5"/><circle cx="183" cy="112" r="4.5" fill="#fff4cf" fill-opacity="0.8"/>
+    <ellipse cx="100" cy="108" rx="84" ry="76" fill="url(#odface)" stroke="#2b6cb0" stroke-width="4.5"/>
+    <ellipse cx="68" cy="60" rx="30" ry="11" transform="rotate(-18 68 60)" fill="#fff" fill-opacity="0.6"/>
+    <g class="eyes"><path d="M 70 104 m -2 0 a 3 3 0 1 1 6 0 a 6.5 6.5 0 1 1 -13 0 a 10 10 0 1 1 20 0 a 13.5 13.5 0 1 1 -27 0" fill="none" stroke="#0f2147" stroke-width="3" stroke-linecap="round"/><path d="M 130 104 m -2 0 a 3 3 0 1 1 6 0 a 6.5 6.5 0 1 1 -13 0 a 10 10 0 1 1 20 0 a 13.5 13.5 0 1 1 -27 0" fill="none" stroke="#0f2147" stroke-width="3" stroke-linecap="round"/></g>
+    <ellipse cx="42" cy="128" rx="16" ry="10" fill="url(#odcheek)"/><ellipse cx="158" cy="128" rx="16" ry="10" fill="url(#odcheek)"/>
+    <path d="M 82 134 Q 91 124 100 134 Q 109 144 118 134" fill="none" stroke="#0f2147" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M 52 33 L 54.1 37.9 L 59 40 L 54.1 42.1 L 52 47 L 49.9 42.1 L 45 40 L 49.9 37.9 Z" fill="#ffd23b"/><path d="M 100 25 L 101.5 28.5 L 105 30 L 101.5 31.5 L 100 35 L 98.5 31.5 L 95 30 L 98.5 28.5 Z" fill="#ffd23b"/><path d="M 150 33 L 152.1 37.9 L 157 40 L 152.1 42.1 L 150 47 L 147.9 42.1 L 143 40 L 147.9 37.9 Z" fill="#ffd23b"/>
+  </g>
+</svg>
