@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPACE ESCAPE</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- INTRO -->
+    <div class="scene active" id="scene-intro">
+      <div class="scanlines"></div>
+      <div class="content centered">
+        <p class="label">STATION OMEGA-7</p>
+        <h1>YOU WAKE UP<br>ALONE.</h1>
+        <p class="sub">oxygen: <span class="red">14%</span> · crew: <span class="red">0</span></p>
+        <button class="btn" onclick="goto('scene-quarters')">OPEN EYES →</button>
+      </div>
+    </div>
+
+    <!-- ROOM 1: SLEEPING QUARTERS -->
+    <div class="scene" id="scene-quarters">
+      <div class="scanlines"></div>
+      <div class="hud">
+        <span>ROOM 1 / 3 — SLEEPING QUARTERS</span>
+        <span class="red">O₂ 14%</span>
+      </div>
+      <div class="content">
+        <p class="flavor">Emergency lights flicker. A <b>locker</b> is bolted to the wall. There's a <b>vent</b> above your bunk and a <b>door</b> to the north — locked.</p>
+        <div class="items">
+          <div class="item" id="locker" onclick="clickLocker()">
+            <div class="item-icon">🔒</div>
+            <div class="item-label">LOCKER</div>
+          </div>
+          <div class="item" onclick="clickVent()">
+            <div class="item-icon">🌀</div>
+            <div class="item-label">VENT</div>
+          </div>
+          <div class="item" onclick="clickDoor1()">
+            <div class="item-icon">🚪</div>
+            <div class="item-label">DOOR (NORTH)</div>
+          </div>
+        </div>
+        <div id="log" class="log"></div>
+        <div id="inventory-bar" class="inventory-bar"></div>
+      </div>
+    </div>
+
+    <!-- ROOM 2: CONTROL ROOM -->
+    <div class="scene" id="scene-control">
+      <div class="scanlines"></div>
+      <div class="hud">
+        <span>ROOM 2 / 3 — CONTROL ROOM</span>
+        <span class="red">O₂ 9%</span>
+      </div>
+      <div class="content">
+        <p class="flavor">Banks of dead monitors. A <b>terminal</b> still has power — it's asking for a password. There's a <b>whiteboard</b> with faded writing and an <b>airlock door</b> to the east.</p>
+        <div class="items">
+          <div class="item" onclick="clickTerminal()">
+            <div class="item-icon">💻</div>
+            <div class="item-label">TERMINAL</div>
+          </div>
+          <div class="item" onclick="clickWhiteboard()">
+            <div class="item-icon">📋</div>
+            <div class="item-label">WHITEBOARD</div>
+          </div>
+          <div class="item" id="airlock" onclick="clickAirlock()">
+            <div class="item-icon">🔐</div>
+            <div class="item-label">AIRLOCK DOOR</div>
+          </div>
+        </div>
+        <div id="log2" class="log"></div>
+        <div id="terminal-input" class="terminal-box hidden">
+          <p class="terminal-prompt">ENTER PASSWORD:</p>
+          <input id="password-field" type="text" maxlength="10" placeholder="_ _ _ _ _" />
+          <button class="btn small" onclick="submitPassword()">CONFIRM</button>
+        </div>
+        <div id="inventory-bar2" class="inventory-bar"></div>
+      </div>
+    </div>
+
+    <!-- ROOM 3: ESCAPE POD BAY -->
+    <div class="scene" id="scene-pod">
+      <div class="scanlines"></div>
+      <div class="hud">
+        <span>ROOM 3 / 3 — ESCAPE POD BAY</span>
+        <span class="red">O₂ 4%</span>
+      </div>
+      <div class="content">
+        <p class="flavor">The pod is here — but the launch panel is dead. Three <b>wire bundles</b> hang loose. Match them to their ports to restore power.</p>
+        <div class="wire-puzzle" id="wire-puzzle">
+          <div class="wire-col left-col">
+            <div class="wire-end left" data-wire="A" onclick="selectWire('A')">A — POWER</div>
+            <div class="wire-end left" data-wire="B" onclick="selectWire('B')">B — IGNITION</div>
+            <div class="wire-end left" data-wire="C" onclick="selectWire('C')">C — NAV</div>
+          </div>
+          <div class="wire-col right-col">
+            <div class="wire-end right" data-port="2" onclick="connectPort('2')">PORT 2</div>
+            <div class="wire-end right" data-port="3" onclick="connectPort('3')">PORT 3</div>
+            <div class="wire-end right" data-port="1" onclick="connectPort('1')">PORT 1</div>
+          </div>
+        </div>
+        <p class="hint-text">Hint: power goes first, nav goes last.</p>
+        <div id="log3" class="log"></div>
+        <button class="btn hidden" id="launch-btn" onclick="goto('scene-win')">🚀 LAUNCH POD</button>
+      </div>
+    </div>
+
+    <!-- WIN -->
+    <div class="scene" id="scene-win">
+      <div class="scanlines"></div>
+      <div class="content centered">
+        <p class="label">ESCAPE SUCCESSFUL</p>
+        <h1>YOU MADE IT.</h1>
+        <p class="sub">Station Omega-7 collapsed 4 minutes later.<br>You were the only survivor.</p>
+        <button class="btn" onclick="restartGame()">PLAY AGAIN</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
