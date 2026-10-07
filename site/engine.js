@@ -112,20 +112,8 @@ export class Engine {
   }
 
   // which registered object is under the pointer (only names in `allowed`)
-  // on touch we try a small spiral of offsets so tapping near an object still registers
-  pick(clientX, clientY, touch) {
+  pick(clientX, clientY) {
     if (!this.scene) return null;
-    const offsets = touch
-      ? [[0,0],[20,0],[-20,0],[0,20],[0,-20],[14,14],[-14,14],[14,-14],[-14,-14]]
-      : [[0,0]];
-    for (const [ox, oy] of offsets) {
-      const hit = this._pickAt(clientX + ox, clientY + oy);
-      if (hit) return hit;
-    }
-    return null;
-  }
-
-  _pickAt(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect();
     const x = ((clientX - r.left) / r.width) * 2 - 1;
     const y = -((clientY - r.top) / r.height) * 2 + 1;
@@ -152,7 +140,15 @@ export class Engine {
 
   setHover(hit) {
     this.hover = hit;
-    this.outline.selectedObjects = hit ? [hit.object] : [];
+    if (hit) {
+      this.outline.selectedObjects = [hit.object];
+    } else {
+      // show a faint outline on ALL interactive objects when nothing is hovered
+      const reg = kit.getRegistry();
+      this.outline.selectedObjects = this.allowed
+        ? Object.entries(reg).filter(([n]) => this.allowed.has(n)).map(([, o]) => o)
+        : [];
+    }
   }
 
   screenPos(obj) {
@@ -220,7 +216,15 @@ export class Engine {
     }
     tmpE.set(my * 0.018, -mx * 0.03, 0);
     this.camera.quaternion.copy(this.baseQuat).multiply(tmpQ.setFromEuler(tmpE));
-    if (this.hover) this.outline.edgeStrength = 3 + 2.5 * (0.5 + 0.5 * Math.sin(this.time * 6));
+    // idle objects pulse faintly even without hover so players can find them
+    if (this.hover) {
+      this.outline.edgeStrength = 5 + 3 * (0.5 + 0.5 * Math.sin(this.time * 7));
+      this.outline.edgeGlow = 2.2;
+    } else if (this.allowed && this.allowed.size > 0) {
+      // subtle ambient pulse on all interactive objects
+      this.outline.edgeStrength = 0.8 + 0.5 * (0.5 + 0.5 * Math.sin(this.time * 1.8));
+      this.outline.edgeGlow = 0.4;
+    }
     this.composer.render(dt);
 
     // adaptive resolution: keep it smooth on weak gpus

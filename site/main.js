@@ -70,7 +70,7 @@ function hoverTick() {
   const e = pending;
   pending = null;
   if (e && engine.scene && !game.S.busy && !ui.hasModal() && !game.S.over) {
-    const hit = engine.pick(e.clientX, e.clientY, e.pointerType === 'touch');
+    const hit = engine.pick(e.clientX, e.clientY);
     const name = hit ? hit.name : null;
     if (name !== hoverName) {
       hoverName = name;
@@ -98,8 +98,7 @@ canvas.addEventListener('click', (e) => {
   const wasDrag = Math.hypot(e.clientX - ptrDownX, e.clientY - ptrDownY) > dragThreshold;
   markActivity();
   if (wasDrag || !engine.scene || game.S.busy || ui.hasModal()) return;
-  const touch = e.pointerType === 'touch';
-  const hit = engine.pick(e.clientX, e.clientY, touch);
+  const hit = engine.pick(e.clientX, e.clientY);
   if (hit) {
     // flash the label so the player sees they tapped something
     ui.tip(game.labels[hit.name] || hit.name.toUpperCase(), e.clientX, e.clientY);
