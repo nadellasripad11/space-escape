@@ -252,6 +252,26 @@ export const audio = {
       setTimeout(() => { n.src.stop(); n.o.stop(); }, 1200);
     }
   },
+  win() {
+    if (!ensure()) return;
+    const t = ctx.currentTime;
+    // a rising fanfare: three chords sweeping up
+    [[0, 0.12], [0.18, 0.12], [0.36, 0.22]].forEach(([when, dur], i) => {
+      const freqs = [[440, 554, 659], [523, 659, 784], [659, 784, 988]][i];
+      freqs.forEach((f) => {
+        const o = ctx.createOscillator();
+        o.type = 'triangle';
+        o.frequency.value = f;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t + when);
+        g.gain.linearRampToValueAtTime(0.18, t + when + 0.06);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + when + dur + 0.6);
+        o.connect(g).connect(master);
+        o.start(t + when);
+        o.stop(t + when + dur + 0.7);
+      });
+    });
+  },
   rumble(on) {
     if (!ensure()) return;
     if (on && !rumbleNodes) {

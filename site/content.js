@@ -37,6 +37,7 @@ export const content = {
       <p><b>DAY 41</b>Coolant leak on deck 7 again.<br>Command calls it "nominal".</p>
       <p><b>DAY 42</b>Pin changed overnight. Third time<br>this week. Wrote the trick on the<br>whiteboard in the control room so I<br>stop locking myself out.</p>
       <p><b>DAY 44</b>Everyone took the lifeboats.<br>I stayed for the data. Bad call.</p>
+      <p><b>MISSION DAY 1492</b>Set the crate combination to the<br>mission day number. Easy to remember<br>and nobody ever checks that crate.</p>
     </div>`,
 
   porthole: () => `
@@ -56,11 +57,11 @@ export const content = {
 
   hint: (room) => {
     const H = {
-      quarters: ['SLEEPING QUARTERS', ['Not everything you can open is a door.', 'Look closely at the locker, then at what you are carrying.', 'Some of the things on the wall are worth remembering.']],
-      control: ['CONTROL ROOM', ['The terminal wants two digits.', 'One number is how many crew there were. The other is on a sign.', 'The whiteboard says what to do with them.']],
+      quarters: ['SLEEPING QUARTERS', ['There are two things to open in here: the locker and the storage crate.', 'The crate has a 4-digit combination. The number is written in the bunk diary.', 'Read all the diary entries — the mission day number is the code.']],
+      control: ['CONTROL ROOM', ['The fuse box needs a part from the quarters. Check the crate first.', 'The terminal wants two digits: crew count times deck number.', 'Read the whiteboard formula, then count heads on the crew poster and look at the deck sign.']],
       pod: ['POD BAY', ['The panel is dead because three wires are unplugged.', 'The manual shows which symbol each color belongs to.', 'Connect them in the order the manual gives: red, blue, yellow.']],
     }[room] || ['STUCK?', ['Click the glowing things.', 'Read everything twice.']];
-    return `<div class="panel glass hintcard has-oxy">${oxy('worried', 104, 'oxy-top')}<div class="eb">NEED A NUDGE?</div><h2>${H[0]}</h2><ul>${H[1].map((l) => `<li>${l}</li>`).join('')}</ul><div class="foot">HINTS ARE FREE. OXYGEN IS NOT.</div></div>`;
+    return `<div class="panel glass hintcard has-oxy">${oxy('worried', 104, 'oxy-top')}<div class="eb">NEED A NUDGE?</div><h2>${H[0]}</h2><ul>${H[1].map((l) => `<li>${l}</li>`).join('')}</ul><div class="foot">HINTS COST 30 SECONDS ON HARD MODE.</div></div>`;
   },
 
   about: () => `

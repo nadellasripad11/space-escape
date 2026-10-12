@@ -32,6 +32,23 @@ export const ui = {
     $('#tint').classList.toggle('on', low);
   },
   setCard(has) { $('#slot0').innerHTML = has ? '<div class="card-ico"></div>' : ''; },
+  setFuse(has) { $('#slot1').innerHTML = has ? '<div class="fuse-ico"></div>' : ''; },
+  flyItem(x, y, kind) {
+    return new Promise((resolve) => {
+      const c = document.createElement('div');
+      c.className = kind === 'fuse' ? 'fuse-ico' : 'card-ico';
+      c.style.cssText = 'position:fixed;z-index:50;left:' + (x - 22) + 'px;top:' + (y - 14) + 'px;transition:all .8s cubic-bezier(.5,0,.2,1);pointer-events:none';
+      document.body.appendChild(c);
+      const dest = kind === 'fuse' ? $('#slot1') : $('#slot0');
+      const r = dest.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        c.style.left = r.left + r.width / 2 - 22 + 'px';
+        c.style.top = r.top + r.height / 2 - 14 + 'px';
+        c.style.transform = 'rotate(360deg) scale(0.95)';
+      });
+      setTimeout(() => { c.remove(); resolve(); }, 850);
+    });
+  },
   flyCard(x, y) {
     return new Promise((resolve) => {
       const c = document.createElement('div');

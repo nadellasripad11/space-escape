@@ -158,6 +158,17 @@ if (matchMedia('(pointer: coarse)').matches) {
   const fine = document.querySelector('.fine');
   if (fine) fine.textContent = 'drag to look · tap glowing things · tap ? for a hint';
 }
+// difficulty selector
+let currentDiff = game.getDiff();
+document.querySelectorAll('.diff-btn').forEach((btn) => {
+  btn.classList.toggle('active', btn.dataset.d === currentDiff);
+  btn.addEventListener('click', () => {
+    audio.click();
+    currentDiff = btn.dataset.d;
+    game.setDifficulty(currentDiff);
+    document.querySelectorAll('.diff-btn').forEach((b) => b.classList.toggle('active', b.dataset.d === currentDiff));
+  });
+});
 document.getElementById('start').addEventListener('click', () => game.start());
 
 async function boot() {

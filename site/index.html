@@ -24,6 +24,11 @@
       <p class="eyebrow">A 3D ESCAPE ROOM · LIVE IN YOUR BROWSER</p>
       <h1>OMEGA-7</h1>
       <p class="tagline">You wake up alone.<br>Oxygen is falling. Find the escape pod.</p>
+      <div class="diff-row" id="diff-row">
+        <button class="diff-btn" data-d="easy">EASY</button>
+        <button class="diff-btn active" data-d="normal">NORMAL</button>
+        <button class="diff-btn" data-d="hard">HARD</button>
+      </div>
       <div class="title-actions">
         <button id="start" class="btn primary" disabled>LOADING 3D…</button>
         <button id="about" class="btn ghost">HOW IT'S BUILT</button>
@@ -44,7 +49,7 @@
     </div>
     <div class="inv">
       <span class="inv-lab">INVENTORY</span>
-      <div class="slots"><div class="slot glass" id="slot0"></div><div class="slot glass"></div><div class="slot glass"></div></div>
+      <div class="slots"><div class="slot glass" id="slot0"></div><div class="slot glass" id="slot1"></div><div class="slot glass"></div></div>
     </div>
     <div class="hud-br">
       <button id="motion" class="glass round" title="reduce motion (R)">◎</button>

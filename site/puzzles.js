@@ -4,6 +4,7 @@ import { buddy } from './buddy.js';
 import { content, SYM, WIRES } from './content.js';
 
 const PIN = '56';
+const CRATE_CODE = '1492'; // year in the bunk diary: "Day 1492..."
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // resolves true when the pin is right, false if the player closes it first
@@ -71,6 +72,147 @@ export function openKeypad(ui) {
       else if (e.key === 'Backspace' || e.key === 'Delete') press('clr');
     }
     document.addEventListener('keydown', onKey);
+  });
+}
+
+// 4-digit combination lock on the storage crate
+export function openCrateLock(ui) {
+  return new Promise((resolve) => {
+    let entered = '';
+    let locked = false;
+    let done = false;
+    const html = `
+      <div class="panel glass keypad crate-lock">
+        <div class="hd">STORAGE CRATE &nbsp;·&nbsp; COMBINATION LOCK</div>
+        <div class="disp crate-disp"><div class="dots"><i></i><i></i><i></i><i></i></div></div>
+        <div class="sub">ENTER THE 4-DIGIT CODE</div>
+        <div class="keys">
+          ${['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => `<button class="key" data-k="${d}">${d}</button>`).join('')}
+          <button class="key clr" data-k="clr">CLR</button><button class="key" data-k="0">0</button><button class="key blank"></button>
+        </div>
+        <p class="crate-hint">The code is a year. Check the crew log.</p>
+      </div>`;
+    const m = ui.modal(html, {
+      onClose: () => { if (!done) { done = true; document.removeEventListener('keydown', onKey); resolve(false); } },
+    });
+    const root = m.el.querySelector('.crate-lock');
+    const dots = [...m.el.querySelectorAll('.dots i')];
+    const sub = m.el.querySelector('.sub');
+    const disp = m.el.querySelector('.crate-disp');
+    const paint = () => dots.forEach((d, i) => d.classList.toggle('f', i < entered.length));
+
+    async function press(k) {
+      if (locked) return;
+      if (k === 'clr') { entered = ''; paint(); audio.click(); return; }
+      if (entered.length >= 4) return;
+      entered += k;
+      audio.dtmf(k);
+      paint();
+      if (entered.length === 4) {
+        locked = true;
+        await sleep(260);
+        if (entered === CRATE_CODE) {
+          root.classList.add('ok');
+          disp.innerHTML = 'OPEN';
+          sub.textContent = 'LOCK RELEASED';
+          audio.good();
+          await sleep(1100);
+          done = true;
+          document.removeEventListener('keydown', onKey);
+          m.close();
+          resolve(true);
+        } else {
+          root.classList.add('deny');
+          sub.textContent = 'WRONG CODE · RESETTING';
+          audio.bad();
+          await sleep(900);
+          root.classList.remove('deny');
+          sub.textContent = 'ENTER THE 4-DIGIT CODE';
+          entered = '';
+          paint();
+          locked = false;
+        }
+      }
+    }
+    m.el.querySelectorAll('.key[data-k]').forEach((b) => b.addEventListener('click', () => press(b.dataset.k)));
+    function onKey(e) {
+      if (/^[0-9]$/.test(e.key)) press(e.key);
+      else if (e.key === 'Backspace' || e.key === 'Delete') press('clr');
+    }
+    document.addEventListener('keydown', onKey);
+  });
+}
+
+// fuse-box sequence puzzle: click three fuses in the right order (shown on the schematic)
+export function openFuseBox(ui) {
+  return new Promise((resolve) => {
+    // correct order: A (top), C (bottom), B (middle) — shown on schematic diagram
+    const CORRECT = ['A', 'C', 'B'];
+    let seq = [];
+    let done = false;
+    let busy = false;
+
+    const html = `
+      <div class="panel glass fusebox-panel">
+        <div class="hd">FUSE BOX &nbsp;·&nbsp; POWER REROUTE</div>
+        <div class="fuse-schematic">
+          <div class="fuse-row"><span class="fuse-label">DECK LIGHTS</span><span class="fuse-wire"></span><span class="fuse-order">[1]</span><span class="fuse-arrow">A</span></div>
+          <div class="fuse-row"><span class="fuse-label">COMMS</span><span class="fuse-wire"></span><span class="fuse-order">[3]</span><span class="fuse-arrow">B</span></div>
+          <div class="fuse-row"><span class="fuse-label">AIRLOCK</span><span class="fuse-wire"></span><span class="fuse-order">[2]</span><span class="fuse-arrow">C</span></div>
+        </div>
+        <p class="fuse-instr">Insert the fuse in the numbered order shown on the schematic.</p>
+        <div class="fuse-slots">
+          <button class="fuse-slot" data-f="A" id="fslotA">A<span class="fs-label">DECK LIGHTS</span></button>
+          <button class="fuse-slot" data-f="B" id="fslotB">B<span class="fs-label">COMMS</span></button>
+          <button class="fuse-slot" data-f="C" id="fslotC">C<span class="fs-label">AIRLOCK</span></button>
+        </div>
+        <div class="fuse-status" id="fuse-status">INSERT FUSE: SLOT A FIRST</div>
+      </div>`;
+    const m = ui.modal(html, {
+      onClose: () => { if (!done) { done = true; resolve(false); } },
+    });
+    const status = m.el.querySelector('#fuse-status');
+    const updateStatus = () => {
+      const next = CORRECT[seq.length];
+      if (next) status.textContent = 'INSERT FUSE: SLOT ' + next + ' (' + (seq.length + 1) + ' OF 3)';
+    };
+    updateStatus();
+
+    m.el.querySelectorAll('.fuse-slot').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (busy || done) return;
+        const f = btn.dataset.f;
+        audio.plug();
+        if (f === CORRECT[seq.length]) {
+          seq.push(f);
+          btn.classList.add('inserted');
+          btn.disabled = true;
+          audio.good();
+          if (seq.length === 3) {
+            busy = true;
+            status.textContent = 'POWER RESTORED';
+            status.style.color = 'var(--green)';
+            await sleep(900);
+            done = true;
+            m.close();
+            resolve(true);
+          } else {
+            updateStatus();
+          }
+        } else {
+          audio.bad();
+          status.textContent = 'WRONG ORDER · RESETTING';
+          status.style.color = 'var(--red)';
+          busy = true;
+          await sleep(800);
+          seq = [];
+          m.el.querySelectorAll('.fuse-slot').forEach((b) => { b.classList.remove('inserted'); b.disabled = false; });
+          status.style.color = '';
+          busy = false;
+          updateStatus();
+        }
+      });
+    });
   });
 }
 

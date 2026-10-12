@@ -6,18 +6,32 @@ import { content } from './content.js';
 import { oxy } from './oxy.js';
 import { buddy } from './buddy.js';
 import { music } from './music.js';
-import { openKeypad, openWiring } from './puzzles.js';
+import { openKeypad, openWiring, openCrateLock, openFuseBox } from './puzzles.js';
 
-const TOTAL = 420; // seconds of air
+const DIFFICULTY = {
+  easy:   { total: 600, label: 'EASY',   o2mul: 0.7,  hintPenalty: 0 },
+  normal: { total: 420, label: 'NORMAL', o2mul: 1.0,  hintPenalty: 0 },
+  hard:   { total: 300, label: 'HARD',   o2mul: 1.35, hintPenalty: 1 },
+};
 
 export function createGame(engine) {
+  let diff = 'normal';
+  try { diff = localStorage.getItem('omega7-diff') || 'normal'; } catch (e) { /* ignore */ }
+  if (!DIFFICULTY[diff]) diff = 'normal';
+  const D = DIFFICULTY[diff];
+  const TOTAL = D.total;
+
   const S = {
     room: 'title',
+    diff,
     locker: 'closed', // closed | open | empty
     hasCard: false,
     pinOk: false,
     airlockOpen: false,
     powered: false,
+    crateOpen: false,      // new quarters crate combo-lock
+    hasFusePart: false,    // item from crate
+    fuseFixed: false,      // new reactor fuse-box puzzle
     o2: TOTAL,
     hints: 0,
     busy: false,
@@ -29,15 +43,25 @@ export function createGame(engine) {
 
   const LABELS = {
     bunk: 'BUNK', porthole: 'PORTHOLE', poster: 'CREW ROSTER', vent: 'VENT', locker: 'LOCKER', door: 'DOOR', keycard: 'KEYCARD',
-    terminal: 'TERMINAL', whiteboard: 'WHITEBOARD', airlock: 'AIRLOCK', decksign: 'DECK SIGN',
+    crate: 'STORAGE CRATE', fusepart: 'FUSE PART',
+    terminal: 'TERMINAL', whiteboard: 'WHITEBOARD', airlock: 'AIRLOCK', decksign: 'DECK SIGN', fusebox: 'FUSE BOX',
     manual: 'MANUAL', panel: 'CONTROL PANEL', hatch: 'HATCH', launchbtn: 'LAUNCH',
   };
   const LOOKS = new Set(['poster', 'bunk', 'porthole', 'whiteboard', 'manual']);
   const ROOM_LABEL = { quarters: 'SLEEPING QUARTERS', control: 'CONTROL ROOM', pod: 'ESCAPE POD BAY', space: 'OPEN SPACE' };
 
   const names = () => {
-    if (S.room === 'quarters') return ['bunk', 'porthole', 'poster', 'vent', 'locker', 'door'].concat(S.locker === 'open' ? ['keycard'] : []);
-    if (S.room === 'control') return ['terminal', 'whiteboard', 'airlock', 'decksign'];
+    if (S.room === 'quarters') {
+      const base = ['bunk', 'porthole', 'poster', 'vent', 'locker', 'crate', 'door'];
+      if (S.locker === 'open') base.push('keycard');
+      if (S.crateOpen && !S.hasFusePart) base.push('fusepart');
+      return base;
+    }
+    if (S.room === 'control') {
+      const base = ['terminal', 'whiteboard', 'airlock', 'decksign'];
+      if (!S.fuseFixed) base.push('fusebox');
+      return base;
+    }
     if (S.room === 'pod') return ['manual', 'panel', 'hatch'].concat(S.powered ? ['launchbtn'] : []);
     return [];
   };
@@ -134,12 +158,70 @@ export function createGame(engine) {
         }
         break;
       case 'quarters:vent': ui.toast('Too small to crawl through. Nothing in there but dust.'); buddy.event('vent'); break;
+      case 'quarters:crate':
+        if (S.crateOpen && !S.hasFusePart) ui.toast('A fuse part is still sitting in there. Take it.');
+        else if (S.crateOpen && S.hasFusePart) ui.toast('Empty crate. No more room for sentiment.');
+        else {
+          S.busy = true;
+          audio.whoosh();
+          await engine.focus(o, 2.0, 750);
+          S.busy = false;
+          buddy.event('crate');
+          const ok = await openCrateLock(ui);
+          if (!ok) { engine.reset(650); break; }
+          S.crateOpen = true;
+          audio.clang();
+          audio.good();
+          ui.toast('The crate clicks open. A fuse part inside.', 'good');
+          refreshAllowed();
+        }
+        break;
+      case 'quarters:fusepart': {
+        S.busy = true;
+        audio.pickup();
+        const sp = engine.screenPos(o);
+        S.hasFusePart = true;
+        refreshAllowed();
+        await ui.flyItem(sp.x, sp.y, 'fuse');
+        ui.setFuse(true);
+        audio.good();
+        ui.toast('FUSE PART ACQUIRED. The control room may need this.', 'good');
+        buddy.event('fusePickup');
+        S.busy = false;
+        break;
+      }
       case 'quarters:poster': await closeup(o, content.poster(), { dist: 2.1 }); break;
       case 'quarters:bunk': await closeup(o, content.diary(), { dist: 3.2 }); break;
       case 'quarters:porthole': await closeup(o, content.porthole(), { dist: 2.0 }); break;
 
       case 'control:whiteboard': await closeup(o, content.whiteboard(), { dist: 2.3 }); break;
       case 'control:decksign': ui.toast('DECK 07'); break;
+      case 'control:fusebox':
+        if (!S.hasFusePart) {
+          audio.bad(); engine.shake = 0.05;
+          ui.toast('The fuse box is open but needs a fuse part. Look in the quarters.', 'bad');
+          buddy.event('fuseNoPart');
+        } else if (S.fuseFixed) {
+          ui.toast('POWER RESTORED. The lights are steady.', 'good');
+        } else {
+          S.busy = true;
+          audio.whoosh();
+          await engine.focus(o, 2.0, 750);
+          S.busy = false;
+          buddy.event('fusebox');
+          const ok = await openFuseBox(ui);
+          if (!ok) { engine.reset(650); break; }
+          S.busy = true;
+          S.fuseFixed = true;
+          refreshAllowed();
+          await engine.reset(700);
+          audio.good();
+          audio.spark();
+          ui.toast('POWER RESTORED. Lights humming again.', 'good');
+          buddy.event('fuseFixed');
+          S.busy = false;
+        }
+        break;
       case 'control:airlock':
         if (!S.airlockOpen) {
           audio.bad();
@@ -240,19 +322,46 @@ export function createGame(engine) {
     return { time: used, left: Math.max(0, Math.round(S.o2)), hints: S.hints };
   }
   const mmss = (s) => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
-  function makeShareText(st, best) {
-    const stars = st.hints === 0 ? '⭐⭐⭐' : st.hints === 1 ? '⭐⭐' : '⭐';
-    const newBest = best >= st.time;
+  function makeShareText(st, bestTime, stars) {
+    const starStr = '*'.repeat(stars) + ' '.repeat(3 - stars);
+    const newBest = bestTime >= st.time;
     const lines = [
-      '🚀 OMEGA-7 \xb7 3D Escape Room',
-      '✅ Escaped in ' + mmss(st.time) + '  ' + stars,
-      '💨 Air left: ' + mmss(st.left) + '  💡 Hints: ' + st.hints,
-      newBest ? '🏆 New personal best!' : '',
+      'OMEGA-7 · 3D Escape Room',
+      'Escaped in ' + mmss(st.time) + '  [' + starStr + ']',
+      'Air left: ' + mmss(st.left) + '  Hints: ' + st.hints + '  Mode: ' + D.label,
+      newBest ? 'New personal best!' : '',
       '',
-      '▸ play → https://nadellasripad11.github.io/space-escape/site/',
+      'play → https://nadellasripad11.github.io/space-escape/site/',
       '#wrongtool #hackclub',
     ];
     return lines.filter((l, i, a) => l || (a[i - 1] && a[i + 1])).join('\n');
+  }
+
+  function starCount(st) {
+    if (st.hints === 0 && st.time < TOTAL * 0.6) return 3;
+    if (st.hints <= 1 && st.time < TOTAL * 0.85) return 2;
+    return 1;
+  }
+
+  function loadBoard() {
+    try { return JSON.parse(localStorage.getItem('omega7-lb') || '[]'); } catch (e) { return []; }
+  }
+  function saveBoard(entry) {
+    let lb = loadBoard();
+    lb.push(entry);
+    lb.sort((a, b) => a.time - b.time);
+    lb = lb.slice(0, 5);
+    try { localStorage.setItem('omega7-lb', JSON.stringify(lb)); } catch (e) { /* ignore */ }
+    return lb;
+  }
+  function renderBoard(lb, highlightIdx) {
+    if (!lb.length) return '';
+    const rows = lb.map((e, i) => {
+      const cls = i === highlightIdx ? ' class="lb-you"' : '';
+      const stars = e.stars === 3 ? '***' : e.stars === 2 ? '**' : '*';
+      return `<tr${cls}><td class="lb-rank">${i + 1}</td><td>${mmss(e.time)}</td><td>${e.diff ? e.diff.toUpperCase() : 'NORMAL'}</td><td class="lb-stars">${stars}</td></tr>`;
+    }).join('');
+    return `<div class="lb-wrap"><table class="lb"><thead><tr><th>#</th><th>TIME</th><th>MODE</th><th>RATING</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
   function win() {
@@ -262,34 +371,45 @@ export function createGame(engine) {
     buddy.show(false);
     audio.ambience('none');
     audio.hum(false);
-    audio.good();
+    audio.win();
+    music.stop();
     const st = stats();
-    let best = st.time;
-    try {
-      const prev = Number(localStorage.getItem('omega7-best') || 0);
-      if (!prev || st.time < prev) localStorage.setItem('omega7-best', String(st.time));
-      best = Math.min(prev || st.time, st.time);
-    } catch (e) { /* ignore */ }
+    const stars = starCount(st);
+    const entry = { time: st.time, hints: st.hints, stars, diff };
+    const lb = saveBoard(entry);
+    const youIdx = lb.findIndex((e) => e.time === st.time && e.diff === diff && e.stars === stars);
+    const isNewBest = youIdx === 0;
+    const starStr = stars === 3 ? 'THREE STARS' : stars === 2 ? 'TWO STARS' : 'ONE STAR';
+    const starDots = '&#x2605;'.repeat(stars) + '&#x2606;'.repeat(3 - stars);
     ui.modal(`
       <div class="panel glass endcard has-oxy">
-        ${oxy('happy', 128, 'oxy-top')}<div class="eb" style="color:var(--green)">ESCAPE SUCCESSFUL</div>
+        ${oxy('happy', 128, 'oxy-top')}
+        <div class="eb" style="color:var(--green)">ESCAPE SUCCESSFUL</div>
         <h2>YOU MADE IT.</h2>
+        <div class="star-row">${starDots}</div>
+        <p class="star-label">${starStr}${isNewBest ? ' &nbsp;&mdash;&nbsp; NEW BEST' : ''}</p>
         <p>Station Omega-7 came apart four minutes later.<br>You were the only survivor.</p>
-        <div class="stats"><div><b>${mmss(st.time)}</b>TIME</div><div><b>${mmss(st.left)}</b>AIR LEFT</div><div><b>${st.hints}</b>HINTS</div><div><b>${mmss(best)}</b>BEST</div></div>
-        <div class="row"><button class="btn green" id="again">PLAY AGAIN</button><button class="btn ghost" id="share">SHARE ↗</button><a class="btn ghost" href="https://github.com/nadellasripad11/space-escape" target="_blank" rel="noopener">SOURCE ↗</a></div>
+        <div class="stats">
+          <div><b>${mmss(st.time)}</b>TIME</div>
+          <div><b>${mmss(st.left)}</b>AIR LEFT</div>
+          <div><b>${st.hints}</b>HINTS</div>
+          <div><b>${D.label}</b>DIFFICULTY</div>
+        </div>
+        ${renderBoard(lb, youIdx)}
+        <div class="row"><button class="btn green" id="again">PLAY AGAIN</button><button class="btn ghost" id="share">SHARE</button><a class="btn ghost" href="https://github.com/nadellasripad11/space-escape" target="_blank" rel="noopener">SOURCE</a></div>
       </div>`, { sticky: true });
     const winModal = ui.lastModal();
     winModal.el.querySelector('#again').addEventListener('click', () => location.reload());
     winModal.el.querySelector('#share').addEventListener('click', async () => {
-      const shareText = makeShareText(st, best);
+      const shareText = makeShareText(st, lb[0] ? lb[0].time : st.time, stars);
       const btn = winModal.el.querySelector('#share');
       try {
         if (navigator.share && navigator.canShare && navigator.canShare({ text: shareText })) {
           await navigator.share({ text: shareText });
         } else {
           await navigator.clipboard.writeText(shareText);
-          btn.textContent = 'COPIED ✓';
-          setTimeout(() => { btn.textContent = 'SHARE ↗'; }, 1900);
+          btn.textContent = 'COPIED';
+          setTimeout(() => { btn.textContent = 'SHARE'; }, 1900);
         }
       } catch (e) { /* user cancelled or no clipboard */ }
     });
@@ -340,6 +460,7 @@ export function createGame(engine) {
   function hint() {
     if (S.over || S.launching || ui.hasModal()) return;
     S.hints++;
+    if (D.hintPenalty) { S.o2 = Math.max(0, S.o2 - 30); }
     audio.click();
     ui.modal(content.hint(S.room === 'pod' ? 'pod' : S.room === 'control' ? 'control' : 'quarters'));
   }
@@ -352,7 +473,10 @@ export function createGame(engine) {
     const list = [
       { label: 'Open the locker', done: S.locker !== 'closed' },
       { label: 'Take the keycard', done: S.hasCard },
+      { label: 'Crack the storage crate lock', done: S.crateOpen },
+      { label: 'Retrieve the fuse part', done: S.hasFusePart },
       { label: 'Unlock the quarters door', done: r >= 1 },
+      { label: 'Repair the fuse box', done: S.fuseFixed },
       { label: 'Crack the terminal PIN', done: S.pinOk },
       { label: 'Pass through the airlock', done: r >= 2 },
       { label: 'Reconnect the pod wiring', done: S.powered },
@@ -369,11 +493,15 @@ export function createGame(engine) {
   function nudge() {
     if (!S.running || S.over || S.busy || S.launching || ui.hasModal()) return null;
     if (S.room === 'quarters') {
-      if (S.locker === 'closed') return "Look around and click what glows. Not everything that opens is a door — try the locker.";
+      if (S.locker === 'closed') return 'Look around and click what glows. Try the locker and the storage crate.';
       if (!S.hasCard) return 'Something is glinting on the locker shelf. Click it to take the keycard.';
-      return 'You have a keycard now. The door will accept it — click the door to leave.';
+      if (!S.crateOpen) return 'There is a locked storage crate here. The combination might be in the diary.';
+      if (!S.hasFusePart) return 'A fuse part is sitting in the open crate. Take it.';
+      return 'You have the keycard and the fuse part. The door will let you through now.';
     }
     if (S.room === 'control') {
+      if (!S.fuseFixed && S.hasFusePart) return 'The fuse box is open and broken. Use the fuse part you picked up.';
+      if (!S.fuseFixed) return 'Something is wrong with the power. There is a fuse box in here — check the quarters for a spare part.';
       if (!S.pinOk) return 'The terminal needs a PIN. Read the whiteboard — it tells you how to work it out.';
       if (!S.airlockOpen) return 'PIN accepted. Click the airlock to head for the escape pod.';
       return 'The airlock is open. Click it to step through to the pod bay.';
@@ -387,7 +515,7 @@ export function createGame(engine) {
 
   engine.onFrame = (dt) => {
     if (!S.running || S.over || S.room === 'space') return;
-    if (!S.launching) S.o2 -= dt;
+    if (!S.launching) S.o2 -= dt * D.o2mul;
     if (!S.said50 && S.o2 < TOTAL * 0.5) { S.said50 = true; buddy.event('o2_50'); }
     if (!S.said25 && S.o2 < TOTAL * 0.25) { S.said25 = true; buddy.event('o2_25'); }
     if (!S.said10 && S.o2 < TOTAL * 0.1) { S.said10 = true; buddy.event('o2_10'); }
@@ -396,5 +524,11 @@ export function createGame(engine) {
     ui.setO2(S.o2 / TOTAL, S.o2);
   };
 
-  return { S, start, interact, hint, nudge, steps, labels: LABELS, refreshAllowed, enterRoom, win, lose, engine, ui, names };
+  function setDifficulty(d) {
+    if (!DIFFICULTY[d]) return;
+    diff = d;
+    try { localStorage.setItem('omega7-diff', d); } catch (e) { /* ignore */ }
+  }
+
+  return { S, start, interact, hint, nudge, steps, labels: LABELS, refreshAllowed, enterRoom, win, lose, engine, ui, names, setDifficulty, getDiff: () => diff };
 }
