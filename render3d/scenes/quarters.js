@@ -240,7 +240,25 @@ export async function build(state, kit) {
   // ---- foreground props -------------------------------------------------------------------------
   const crate = rbox(0.9, 0.55, 0.6, mat(0x354868, 0.5, 0.7), 2.5, 0.28, 0.3, scene, 0.04);
   crate.rotation.y = -0.25;
-  rbox(0.7, 0.06, 0.4, mat(0xffb020, 0.5, 0.2), 2.5, 0.58, 0.3, scene, 0.02).rotation.y = -0.25;
+  const crateLid = rbox(0.7, 0.06, 0.4, mat(0xffb020, 0.5, 0.2), 2.5, 0.58, 0.3, scene, 0.02);
+  crateLid.rotation.y = -0.25;
+  register('crate', crate);
+
+  // fuse part — hidden inside the crate until its combo lock is cracked
+  const fuse = new THREE.Group();
+  fuse.position.set(2.5, 0.66, 0.3);
+  fuse.rotation.y = -0.25;
+  fuse.visible = false;
+  scene.add(fuse);
+  const fuseGlass = new THREE.MeshStandardMaterial({ color: 0x27d3ff, emissive: 0x27d3ff, emissiveIntensity: 1.5, roughness: 0.3, transparent: true, opacity: 0.92 });
+  cyl(0.05, 0.05, 0.26, fuseGlass, 0, 0, 0, fuse, 16).rotation.z = Math.PI / 2;
+  for (const sx of [-0.14, 0.14]) cyl(0.055, 0.055, 0.06, mat(0xd9c27a, 0.3, 0.9), sx, 0, 0, fuse, 16).rotation.z = Math.PI / 2;
+  const fuseL = new THREE.PointLight(0x27d3ff, 2.4, 2.2, 2);
+  fuseL.position.set(2.5, 0.85, 0.5);
+  fuseL.visible = false;
+  scene.add(fuseL);
+  register('fusepart', fuse);
+
   const trunk = rbox(0.8, 0.4, 0.5, mat(0x2b3a58, 0.45, 0.75), -1.45, 0.2, -0.2, scene, 0.05);
   trunk.rotation.y = 0.35;
 
@@ -317,10 +335,13 @@ export async function build(state, kit) {
       dl.color.setHex(col);
       dl.intensity = 3.5;
     },
+    openCrate() { fuse.visible = true; fuseL.visible = true; },
+    takeFuse() { fuse.visible = false; fuseL.visible = false; },
     update(t, dt) {
       reds.forEach((s, i) => { s.intensity = 5 + 15 * (0.5 + 0.5 * Math.sin(t * 3.2 + i * 1.7)); });
       redMats.forEach((m, i) => { m.emissiveIntensity = 1.0 + 2.8 * (0.5 + 0.5 * Math.sin(t * 3.2 + i * 1.7)); });
       if (card.visible) { card.position.y = 1.41 + Math.sin(t * 2) * 0.012; card.rotation.y = Math.sin(t * 1.3) * 0.18; }
+      if (fuse.visible) { fuse.position.y = 0.66 + Math.sin(t * 2) * 0.012; fuse.rotation.y = -0.25 + Math.sin(t * 1.1) * 0.16; }
       if (dust) {
         const p = dust.geometry.attributes.position;
         for (let i = 0; i < p.count; i++) {

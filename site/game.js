@@ -170,6 +170,7 @@ export function createGame(engine) {
           const ok = await openCrateLock(ui);
           if (!ok) { engine.reset(650); break; }
           S.crateOpen = true;
+          if (engine.api.openCrate) engine.api.openCrate();
           audio.clang();
           audio.good();
           ui.toast('The crate clicks open. A fuse part inside.', 'good');
@@ -181,6 +182,7 @@ export function createGame(engine) {
         audio.pickup();
         const sp = engine.screenPos(o);
         S.hasFusePart = true;
+        if (engine.api.takeFuse) engine.api.takeFuse();
         refreshAllowed();
         await ui.flyItem(sp.x, sp.y, 'fuse');
         ui.setFuse(true);
@@ -213,6 +215,7 @@ export function createGame(engine) {
           if (!ok) { engine.reset(650); break; }
           S.busy = true;
           S.fuseFixed = true;
+          if (engine.api.setFuse) engine.api.setFuse(true);
           refreshAllowed();
           await engine.reset(700);
           audio.good();

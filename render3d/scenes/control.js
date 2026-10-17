@@ -215,6 +215,22 @@ export async function build(state, kit) {
   scene.add(signL);
   register('decksign', sign);
 
+  // ---- fuse box (left wall) ---------------------------------------------------
+  const fbox = new THREE.Group();
+  fbox.position.set(-2.72, 1.5, -1.6);
+  fbox.rotation.y = 0.32;
+  scene.add(fbox);
+  rbox(0.62, 0.84, 0.2, mat(0x1a2336, 0.5, 0.7), 0, 0, 0, fbox, 0.03);        // housing
+  rbox(0.52, 0.72, 0.05, mat(0x2a3a5c, 0.4, 0.8), 0, 0, 0.11, fbox, 0.02);    // door panel
+  rbox(0.4, 0.5, 0.02, mat(0x0a1120, 0.5, 0.3), 0, 0.02, 0.14, fbox, 0.01);   // window
+  rbox(0.06, 0.26, 0.04, mat(0xaebbd8, 0.25, 1), 0.2, 0, 0.14, fbox, 0.01);   // handle
+  const fboxLed = glowMat(0xff3b4e, 3);
+  sphere(0.03, fboxLed, -0.22, 0.32, 0.15, fbox, 12);
+  const fbL = new THREE.PointLight(0xff8030, 1.8, 2.8, 2);
+  fbL.position.set(-2.4, 1.7, -1.1);
+  scene.add(fbL);
+  register('fusebox', fbox);
+
   // ---- whiteboard (right) ---------------------------------------------------------------------------
   const wbTex = canvasTex(640, 440, (ctx, w, h) => {
     ctx.fillStyle = '#b9c6d6'; ctx.fillRect(0, 0, w, h);
@@ -296,6 +312,7 @@ export async function build(state, kit) {
       dh.rotation.y = isOpen ? -1.2 : 0;
     },
     setTerminal(lines) { termLines = lines; redrawTerm(true); },
+    setFuse(fixed) { const c = fixed ? 0x3dff9a : 0xff3b4e; fboxLed.color.setHex(c); fboxLed.emissive.setHex(c); },
     async openAnimated() {
       this.open = true;
       setColors(true);
