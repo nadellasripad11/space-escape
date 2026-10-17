@@ -697,7 +697,7 @@ function buildKeypad(key, name, col, row, st) {
         const h = hotspot(f, 541 + ci * 124, 350 + ri * 84, 110, 70, 'key ' + label);
         let to;
         if (label === 'CLR') to = 'k0';
-        else if (st === 'k0') to = label === '5' ? 'k5' : 'kx';
+        else if (st === 'k0') to = label === '1' ? 'k5' : 'kx';
         else if (st === 'k5') to = label === '6' ? 'kok' : 'kdeny';
         else to = 'kdeny';
         go(h, to, { d: 0.05 });
