@@ -60,11 +60,15 @@ function buildControl(key, name, col, row, s) {
   toast(f, s.toast, s.tone);
 
   go(hotRegion(f, R.whiteboard, 'whiteboard', 8), 'whiteboard', PUSH);
+  // Captain's log tablet — amber glow panel in bottom-right corner
+  glass(f, 1148, 698, 210, 92, { r: 14, op: 0.65, blur: 10, stroke: C.amber, strokeOp: 0.78, glow: C.amber, glowA: 0.28, shadow: false, name: 'log panel' });
+  text(f, 1148, 698, 'CAPT  LOG', { font: 'mono', size: 17, fill: C.amber, w: 210, align: 'CENTER', lh: 92, name: 'log panel label' });
+  go(hotspot(f, 1143, 693, 220, 102, 'captain log'), 'ctab', PUSH);
   if (!s.open) {
     go(hotRegion(f, R.airlock, 'airlock', 4), 'c1a');
     go(hotRegion(f, R.terminal, 'terminal', 10), 'k0', PUSH);
   } else {
-    go(hotRegion(f, R.airlock, 'airlock', 4), 'p1', { t: 'PUSH', dir: 'LEFT', d: 0.7, ease: 'EASE_IN_AND_OUT' });
+    go(hotRegion(f, R.airlock, 'airlock', 4), 'rp0', { t: 'PUSH', dir: 'LEFT', d: 0.7, ease: 'EASE_IN_AND_OUT' });
   }
   lungs(f);
 }

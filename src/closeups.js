@@ -93,6 +93,30 @@ function buildManual() {
   closeBtn(f, 1060, 76, 'BACK');
 }
 
+// ---- captain's log (cipher close-up) ------------------------------------------
+function buildCaptainLog() {
+  const f = mk('ctab', '07b / Captain log (close-up)', 4, 4);
+  zoomBg(f, 'control_sealed', REGIONS.control_sealed.whiteboard, 2.0, 10);
+  dim(f, 0.5);
+  paperShadow(f, 290, 60, 860, 780, 20);
+  rect(f, 290, 60, 860, 780, { fill: '#080f1e', stroke: C.amber, sw: 3, r: 20, fx: [glow(C.amber, 18, 0.18)], name: 'tablet' });
+  rect(f, 290, 60, 860, 76, { fill: '#141f06', r: 20, name: 'header bg' });
+  text(f, 290, 60, "CAPTAIN'S LOG  ·  DAY 44", { font: 'mono', size: 15, fill: C.amber, ls: 5, w: 860, align: 'CENTER', lh: 76, name: 'header' });
+  text(f, 354, 182, 'REACTOR STARTUP SEQUENCE', { font: 'head', size: 28, fill: C.white, ls: 3, name: 'log title' });
+  text(f, 354, 236, 'Emergency restart only. Do NOT let Marcus see this.', { font: 'mono', size: 17, lh: 28, fill: '#8090a8', name: 'note' });
+  path(f, 354, 288, 'M 0 0 L 732 0', { stroke: C.line, sw: 2, name: 'rule1' });
+  text(f, 354, 318, 'BRAVO  ·  ALPHA  ·  CHARLIE', { font: 'title', size: 52, fill: C.white, fx: [glow(C.amber, 20, 0.4)], name: 'sequence' });
+  path(f, 354, 412, 'M 0 0 L 732 0', { stroke: C.line, sw: 2, name: 'rule2' });
+  text(f, 354, 434, 'NATO PHONETIC  ·  SWITCH NUMBERS', { font: 'mono', size: 14, fill: C.dim, ls: 3, name: 'ref head' });
+  [['ALPHA', '1'], ['BRAVO', '2'], ['CHARLIE', '3']].forEach(([word, num], i) => {
+    const y = 476 + i * 60;
+    rect(f, 354, y, 724, 48, { fill: i % 2 ? '#0d1e35' : '#091428', r: 8, name: 'nato row' });
+    text(f, 374, y, word, { font: 'mono', size: 20, fill: C.white, lh: 48, name: 'word' });
+    text(f, 614, y, '→  SWITCH  ' + num, { font: 'mono', size: 20, fill: C.cyan, lh: 48, name: 'num' });
+  });
+  closeBtn(f, 1100, 80, 'BACK');
+}
+
 // ---- hints, about -------------------------------------------------------------------
 
 function hintFrame(key, name, col, row, bg, title, lines) {
@@ -120,9 +144,14 @@ function buildHints() {
     'Some of the things on the wall are worth remembering.',
   ]);
   hintFrame('hc', '15 / Hint · control room', 5, 4, 'control_sealed', 'CONTROL ROOM', [
-    'The terminal wants two digits.',
-    'One number is how many crew there were. The other is on a sign.',
-    'The whiteboard says what to do with them.',
+    'The terminal wants two digits. Check the whiteboard for the formula.',
+    'One number is how many crew. The other is on a sign back in quarters.',
+    "The captain's log has the reactor sequence — read it before you leave.",
+  ]);
+  hintFrame('hr', '15 / Hint · reactor', 5, 9, 'pod_dead', 'REACTOR', [
+    "The switches must be flipped in the order from the captain's log.",
+    'The log gives the sequence in NATO phonetic code.',
+    'BRAVO · ALPHA · CHARLIE means flip switch 2, then 1, then 3.',
   ]);
   hintFrame('hp', '15 / Hint · pod bay', 5, 6, 'pod_dead', 'POD BAY', [
     'The panel is dead because three wires are unplugged.',
@@ -161,6 +190,7 @@ function buildAllExtra() {
   buildDiary();
   buildPortholeView();
   buildManual();
+  buildCaptainLog();
   buildHints();
   buildAbout();
 }

@@ -10,6 +10,7 @@ function rowLabels() {
     [6, 'ACT III  ·  POD BAY'],
     [7, 'ACT III  ·  WIRING'],
     [8, 'LAUNCH'],
+    [9, 'ACT IV  ·  REACTOR'],
   ];
   for (const [row, label] of rows) {
     text(figma.currentPage, 0, row * GRID_Y - 64, label, { font: 'mono', size: 20, fill: C.dim, ls: 8, name: 'row label' });
@@ -17,9 +18,12 @@ function rowLabels() {
 }
 
 (async () => {
+  // drop a previous generated page so re-running stays clean (one page only)
+  const stale = figma.root.children.filter((p) => p.name === 'OMEGA-7 (generated)');
   const page = figma.createPage();
   page.name = 'OMEGA-7 (generated)';
   await figma.setCurrentPageAsync(page);
+  for (const p of stale) p.remove();
   page.backgrounds = [{ type: 'SOLID', color: rgb('#080b12') }];
   await loadFonts();
   buildTitle();
@@ -28,6 +32,7 @@ function rowLabels() {
   buildAllKeypad();
   buildAllPod();
   buildAllWires();
+  buildAllReactor();
   buildAllEnd();
   buildAllExtra();
   rowLabels();

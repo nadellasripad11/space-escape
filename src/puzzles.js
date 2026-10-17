@@ -61,7 +61,7 @@ function buildKeypad(key, name, col, row, st) {
         const h = hotspot(f, 541 + ci * 124, 350 + ri * 84, 110, 70, 'key ' + label);
         let to;
         if (label === 'CLR') to = 'k0';
-        else if (st === 'k0') to = label === '5' ? 'k5' : 'kx';
+        else if (st === 'k0') to = label === '1' ? 'k5' : 'kx';
         else if (st === 'k5') to = label === '6' ? 'kok' : 'kdeny';
         else to = 'kdeny';
         go(h, to, { d: 0.05 });
@@ -144,4 +144,50 @@ function buildAllWires() {
   buildWire('w1', '11 / Wiring · blue', 1, 7, 1);
   buildWire('w2', '11 / Wiring · yellow', 2, 7, 2);
   buildWire('wshort', '11 / Wiring · short circuit', 3, 7, 'short');
+}
+
+// ---- REACTOR SWITCH PANEL (ACT IV) -------------------------------------------
+function buildReactor(key, name, col, row, onSwitches, switchDests) {
+  const f = mk(key, name, col, row);
+  const error = !switchDests;
+  zoomBg(f, 'pod_dead', REGIONS.pod_dead.panel, 1.6, 18);
+  dim(f, error ? 0.6 : 0.48, error ? '#2a0508' : '#02050b');
+  const panelCol = error ? C.red : C.amber;
+  glass(f, 180, 80, 1080, 740, { r: 28, op: 0.72, blur: 24, glow: panelCol, glowA: 0.16, name: 'panel' });
+  hazardStripe(f, 200, 98, 1040, 14);
+  text(f, 200, 132, 'REACTOR  ·  STARTUP SEQUENCE', { font: 'mono', size: 15, fill: '#a9c3e6', ls: 4, name: 'title' });
+  const mcol = error ? C.red : onSwitches.length > 0 ? C.green : C.amber;
+  const msg = error ? 'WRONG SEQUENCE  ·  RESETTING' :
+    onSwitches.length === 0 ? 'FLIP THE SWITCHES IN ORDER' :
+    onSwitches.length === 1 ? 'CORRECT  ·  CONTINUE THE SEQUENCE' : 'ONE MORE  ·  FINAL SWITCH';
+  text(f, 200, 168, msg, { font: 'head', size: 28, fill: mcol, ls: 3, fx: [glow(mcol, 18, 0.6)], name: 'msg' });
+  const swX = [440, 720, 1000];
+  ['1', '2', '3'].forEach((lbl, i) => {
+    const x = swX[i];
+    const on = onSwitches.includes(i);
+    const sc = on ? C.green : '#354258';
+    rect(f, x - 50, 280, 100, 340, { fill: '#0c1828', stroke: sc, sw: on ? 3 : 1.5, r: 14, fx: on ? [glow(sc, 22, 0.5)] : [], name: 'sw box ' + lbl });
+    ellipse(f, x - 10, 258, 20, 20, { fill: on ? C.green : '#1e2c42', fx: on ? [glow(C.green, 12, 0.9)] : [], name: 'sw light ' + lbl });
+    const levY = on ? 440 : 300;
+    rect(f, x - 14, levY, 28, 70, { fill: on ? C.green : '#2c3e5a', r: 8, fx: on ? [glow(C.green, 12, 0.7)] : [], name: 'sw lever ' + lbl });
+    text(f, x - 50, 646, lbl, { font: 'title', size: 50, fill: on ? C.green : '#506080', w: 100, align: 'CENTER', name: 'sw num ' + lbl });
+  });
+  if (!error) {
+    swX.forEach((x, i) => go(hotspot(f, x - 60, 248, 120, 400, 'switch ' + (i + 1)), switchDests[i]));
+    glass(f, 200, 732, 150, 46, { r: 23, op: 0.5, stroke: C.cyan, strokeOp: 0.5, shadow: false, name: 'hint button' });
+    text(f, 200, 732, '?  HINT', { font: 'mono', size: 13, fill: C.cyan, ls: 3, w: 150, align: 'CENTER', lh: 46, name: 'hint label' });
+    go(hotspot(f, 196, 728, 158, 54, 'hint'), 'hr', { d: 0.2 });
+    closeBtn(f, 1220, 100, 'c2', PUSH);
+    lungs(f);
+  } else {
+    after(f, 1.3, 'rp0', { d: 0.2 });
+  }
+}
+
+function buildAllReactor() {
+  // Correct sequence: 2, 1, 3 (BRAVO · ALPHA · CHARLIE)
+  buildReactor('rp0', '13 / Reactor · start',   0, 9, [],     ['rpx', 'rp1', 'rpx']);
+  buildReactor('rp1', '13 / Reactor · step 1',  1, 9, [1],    ['rp2', 'rpx', 'rpx']);
+  buildReactor('rp2', '13 / Reactor · step 2',  2, 9, [1, 0], ['rpx', 'rpx', 'p1']);
+  buildReactor('rpx', '13 / Reactor · wrong',   3, 9, [],     null);
 }

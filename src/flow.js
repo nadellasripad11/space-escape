@@ -3,7 +3,7 @@
 // build step can run as its own script; wire() resolves them in a final pass.
 const GRID_X = W + 160;
 const GRID_Y = H + 200;
-const OXYGEN_SECONDS = 150; // idle time before the lungs give out
+const OXYGEN_SECONDS = 300; // idle time before the lungs give out
 
 function mk(key, name, col, row) {
   const f = figma.createFrame();
