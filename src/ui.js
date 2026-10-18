@@ -31,3 +31,5 @@ function pill(f, x, y, w, h, label, col, filled) {
 
 // camera push-in used for every close-up
 const PUSH = { t: 'SMART_ANIMATE', d: 0.55, ease: 'EASE_IN_AND_OUT' };
+// state-to-state morph: smart-animate matching layers so levers flip, dots fill, wires snap
+const MORPH = { t: 'SMART_ANIMATE', d: 0.28, ease: 'EASE_OUT' };

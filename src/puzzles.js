@@ -26,7 +26,7 @@ function buildKeypad(key, name, col, row, st) {
   if (slots) {
     for (let i = 0; i < 2; i++) {
       const filled = i === 0 && st !== 'k0';
-      ellipse(f, 720 + (i ? 52 : -52) - 18, 225 - 18, 36, 36, filled ? { fill: tone, fx: [glow(tone, 16, 0.8)], name: 'digit slot' } : { stroke: tone, sw: 3, op: 0.7, name: 'digit slot' });
+      ellipse(f, 720 + (i ? 52 : -52) - 18, 225 - 18, 36, 36, filled ? { fill: tone, fx: [glow(tone, 16, 0.8)], name: 'digit slot ' + i } : { stroke: tone, sw: 3, op: 0.7, name: 'digit slot ' + i });
     }
   }
   const shown = good ? 'ACCESS GRANTED' : bad ? 'ACCESS DENIED' : '';
@@ -64,7 +64,7 @@ function buildKeypad(key, name, col, row, st) {
         else if (st === 'k0') to = label === '1' ? 'k5' : 'kx';
         else if (st === 'k5') to = label === '6' ? 'kok' : 'kdeny';
         else to = 'kdeny';
-        go(h, to, { d: 0.05 });
+        go(h, to, MORPH);
       })
     );
     closeBtn(f, 960, 100, 'c1', PUSH);
@@ -132,7 +132,7 @@ function buildWire(key, name, col, row, st) {
   if (!short) {
     portY.forEach((y, p) => {
       const ok = p === WIRES[st].port;
-      go(hotspot(f, 1040, y - 10, 180, 110, 'port ' + p), ok ? (st === 2 ? 'p2' : 'w' + (st + 1)) : 'wshort', { d: ok ? 0.25 : 0.08 });
+      go(hotspot(f, 1040, y - 10, 180, 110, 'port ' + p), ok ? (st === 2 ? 'p2' : 'w' + (st + 1)) : 'wshort', ok ? MORPH : { d: 0.08 });
     });
     closeBtn(f, 1190, 118, 'p1', PUSH);
     lungs(f);
@@ -173,7 +173,7 @@ function buildReactor(key, name, col, row, onSwitches, switchDests) {
     text(f, x - 50, 646, lbl, { font: 'title', size: 50, fill: on ? C.green : '#506080', w: 100, align: 'CENTER', name: 'sw num ' + lbl });
   });
   if (!error) {
-    swX.forEach((x, i) => go(hotspot(f, x - 60, 248, 120, 400, 'switch ' + (i + 1)), switchDests[i]));
+    swX.forEach((x, i) => go(hotspot(f, x - 60, 248, 120, 400, 'switch ' + (i + 1)), switchDests[i], MORPH));
     glass(f, 200, 732, 150, 46, { r: 23, op: 0.5, stroke: C.cyan, strokeOp: 0.5, shadow: false, name: 'hint button' });
     text(f, 200, 732, '?  HINT', { font: 'mono', size: 13, fill: C.cyan, ls: 3, w: 150, align: 'CENTER', lh: 46, name: 'hint label' });
     go(hotspot(f, 196, 728, 158, 54, 'hint'), 'hr', { d: 0.2 });

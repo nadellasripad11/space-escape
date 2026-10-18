@@ -32,7 +32,7 @@ module.exports = function selftest(page) {
     }
     return { end: cur, trace: trace.join(' > ') };
   };
-  const toKeypad = ['wake up', 'locker', 'keycard', 'door', 'terminal'];
+  const toKeypad = ['wake up', 'locker', 'keycard', 'timer', 'door', 'terminal'];
   const toReactor = [...toKeypad, 'key 1', 'key 6', 'timer', 'airlock'];
   const toPod = [...toReactor, 'switch 2', 'switch 1', 'switch 3'];
   const solution = [...toPod, 'launch panel', 'port 1', 'port 2', 'port 0', 'launch', 'timer', 'timer', 'timer', 'timer', 'timer'];
@@ -42,12 +42,13 @@ module.exports = function selftest(page) {
     ['quarters hint returns', ['wake up', 'hint', 'close'], 'q1'],
     ['bunk log returns', ['wake up', 'bunk', 'close'], 'q1'],
     ['porthole returns', ['wake up', 'porthole', 'close'], 'q1'],
-    ['control hint returns', ['wake up', 'locker', 'keycard', 'door', 'hint', 'close'], 'c1'],
-    ['captain log returns', ['wake up', 'locker', 'keycard', 'door', 'captain log', 'close'], 'c1'],
+    ['control hint returns', ['wake up', 'locker', 'keycard', 'timer', 'door', 'hint', 'close'], 'c1'],
+    ['captain log returns', ['wake up', 'locker', 'keycard', 'timer', 'door', 'captain log', 'close'], 'c1'],
+    ['keycard flies to inventory', ['wake up', 'locker', 'keycard', 'timer'], 'q3'],
     ['reactor hint returns', [...toReactor, 'hint', 'close'], 'rp0'],
     ['pod hint returns', [...toPod, 'hint', 'close'], 'p1'],
-    ['wrong first digit resets', ['wake up', 'locker', 'keycard', 'door', 'terminal', 'key 3', 'key 6', 'timer'], 'k0'],
-    ['wrong second digit resets', ['wake up', 'locker', 'keycard', 'door', 'terminal', 'key 1', 'key 7', 'timer'], 'k0'],
+    ['wrong first digit resets', [...toKeypad, 'key 3', 'key 6', 'timer'], 'k0'],
+    ['wrong second digit resets', [...toKeypad, 'key 1', 'key 7', 'timer'], 'k0'],
     ['wrong switch resets reactor', [...toReactor, 'switch 1', 'timer'], 'rp0'],
     ['wrong wire resets', [...toPod, 'launch panel', 'port 0', 'timer'], 'w0'],
     ['door locked without card', ['wake up', 'door'], 'q1d'],
@@ -58,6 +59,6 @@ module.exports = function selftest(page) {
     const r = play(script);
     return { name, ok: r.end === want, got: r.end, want };
   });
-  const idle = Object.keys(out).filter((k) => !['title', 'win', 'lose', 'about', 'diary', 'porthole', 'poster', 'whiteboard', 'manual', 'ctab', 'hq', 'hc', 'hp', 'hr', 'kdeny', 'kok', 'wshort', 'rpx', 'l3', 'l2', 'l1', 'la', 'lb'].includes(k) && !out[k].lose);
+  const idle = Object.keys(out).filter((k) => !['title', 'win', 'lose', 'about', 'diary', 'porthole', 'poster', 'whiteboard', 'manual', 'ctab', 'q2grab', 'hq', 'hc', 'hp', 'hr', 'kdeny', 'kok', 'wshort', 'rpx', 'l3', 'l2', 'l1', 'la', 'lb'].includes(k) && !out[k].lose);
   return { results, framesWithoutOxygenTimer: idle };
 };

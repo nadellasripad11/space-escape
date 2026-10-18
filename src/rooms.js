@@ -30,7 +30,7 @@ function buildQuarters(key, name, col, row, s) {
   go(hotRegion(f, R.poster, 'crew poster', 10), 'poster', PUSH);
   go(hotRegion(f, R.vent, 'vent', 8), s.state === 'open' ? 'q2v' : s.state === 'empty' ? 'q3v' : 'q1v');
   if (s.state === 'closed') go(hotRegion(f, R.locker, 'locker', 6), 'q2');
-  if (s.state === 'open') go(hotRegion(f, R.keycard, 'keycard', 34, 96), 'q3');
+  if (s.state === 'open') go(hotRegion(f, R.keycard, 'keycard', 34, 96), 'q2grab', MORPH);
   if (s.state === 'empty') go(hotRegion(f, R.locker, 'locker (empty)', 6), 'q3l');
   if (s.held) go(hotRegion(f, R.door, 'door', 6), 'c1', { t: 'PUSH', dir: 'LEFT', d: 0.7, ease: 'EASE_IN_AND_OUT' });
   else go(hotRegion(f, R.door, 'door', 6), s.state === 'open' ? 'q2d' : 'q1d');
@@ -49,6 +49,16 @@ function buildAllQuarters() {
   buildQuarters('q3', '03 / Quarters · keycard', 0, 3, { state: 'empty', held: true, toast: 'KEYCARD ACQUIRED. LEVEL 2 CLEARANCE', tone: 'good' });
   buildQuarters('q3v', '03 / Quarters · vent', 1, 3, { state: 'empty', held: true, toast: VENT });
   buildQuarters('q3l', '03 / Quarters · empty locker', 2, 3, { state: 'empty', held: true, toast: 'Empty. A dent where the keycard used to be.' });
+  buildKeycardGrab();
+}
+
+// keycard pickup: the card flies from the shelf into the inventory slot (smart-animate)
+function buildKeycardGrab() {
+  const f = mk('q2grab', '03b / Keycard pickup', 3, 3);
+  bgImage(f, 'quarters_empty');
+  hud(f, 'SLEEPING QUARTERS', 18, false, null);
+  drawKeycard(f, 540, 300, 320, 'inv / keycard');
+  after(f, 0.35, 'q3', { t: 'SMART_ANIMATE', d: 0.6, ease: 'EASE_IN_AND_OUT' });
 }
 
 // ---- CONTROL ROOM ----------------------------------------------------------------
