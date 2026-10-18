@@ -529,6 +529,8 @@ function pill(f, x, y, w, h, label, col, filled) {
 
 // camera push-in used for every close-up
 const PUSH = { t: 'SMART_ANIMATE', d: 0.55, ease: 'EASE_IN_AND_OUT' };
+// state-to-state morph: smart-animate matching layers so levers flip, dots fill, wires snap
+const MORPH = { t: 'SMART_ANIMATE', d: 0.28, ease: 'EASE_OUT' };
 
 // ---- rooms.js
 // ---- title + the three rooms (3d renders with live hotspots on top) -------------
@@ -563,7 +565,7 @@ function buildQuarters(key, name, col, row, s) {
   go(hotRegion(f, R.poster, 'crew poster', 10), 'poster', PUSH);
   go(hotRegion(f, R.vent, 'vent', 8), s.state === 'open' ? 'q2v' : s.state === 'empty' ? 'q3v' : 'q1v');
   if (s.state === 'closed') go(hotRegion(f, R.locker, 'locker', 6), 'q2');
-  if (s.state === 'open') go(hotRegion(f, R.keycard, 'keycard', 34, 96), 'q3');
+  if (s.state === 'open') go(hotRegion(f, R.keycard, 'keycard', 34, 96), 'q2grab', MORPH);
   if (s.state === 'empty') go(hotRegion(f, R.locker, 'locker (empty)', 6), 'q3l');
   if (s.held) go(hotRegion(f, R.door, 'door', 6), 'c1', { t: 'PUSH', dir: 'LEFT', d: 0.7, ease: 'EASE_IN_AND_OUT' });
   else go(hotRegion(f, R.door, 'door', 6), s.state === 'open' ? 'q2d' : 'q1d');
@@ -582,6 +584,16 @@ function buildAllQuarters() {
   buildQuarters('q3', '03 / Quarters · keycard', 0, 3, { state: 'empty', held: true, toast: 'KEYCARD ACQUIRED. LEVEL 2 CLEARANCE', tone: 'good' });
   buildQuarters('q3v', '03 / Quarters · vent', 1, 3, { state: 'empty', held: true, toast: VENT });
   buildQuarters('q3l', '03 / Quarters · empty locker', 2, 3, { state: 'empty', held: true, toast: 'Empty. A dent where the keycard used to be.' });
+  buildKeycardGrab();
+}
+
+// keycard pickup: the card flies from the shelf into the inventory slot (smart-animate)
+function buildKeycardGrab() {
+  const f = mk('q2grab', '03b / Keycard pickup', 3, 3);
+  bgImage(f, 'quarters_empty');
+  hud(f, 'SLEEPING QUARTERS', 18, false, null);
+  drawKeycard(f, 540, 300, 320, 'inv / keycard');
+  after(f, 0.35, 'q3', { t: 'SMART_ANIMATE', d: 0.6, ease: 'EASE_IN_AND_OUT' });
 }
 
 // ---- CONTROL ROOM ----------------------------------------------------------------
@@ -666,7 +678,7 @@ function buildKeypad(key, name, col, row, st) {
   if (slots) {
     for (let i = 0; i < 2; i++) {
       const filled = i === 0 && st !== 'k0';
-      ellipse(f, 720 + (i ? 52 : -52) - 18, 225 - 18, 36, 36, filled ? { fill: tone, fx: [glow(tone, 16, 0.8)], name: 'digit slot' } : { stroke: tone, sw: 3, op: 0.7, name: 'digit slot' });
+      ellipse(f, 720 + (i ? 52 : -52) - 18, 225 - 18, 36, 36, filled ? { fill: tone, fx: [glow(tone, 16, 0.8)], name: 'digit slot ' + i } : { stroke: tone, sw: 3, op: 0.7, name: 'digit slot ' + i });
     }
   }
   const shown = good ? 'ACCESS GRANTED' : bad ? 'ACCESS DENIED' : '';
@@ -704,7 +716,7 @@ function buildKeypad(key, name, col, row, st) {
         else if (st === 'k0') to = label === '1' ? 'k5' : 'kx';
         else if (st === 'k5') to = label === '6' ? 'kok' : 'kdeny';
         else to = 'kdeny';
-        go(h, to, { d: 0.05 });
+        go(h, to, MORPH);
       })
     );
     closeBtn(f, 960, 100, 'c1', PUSH);
@@ -772,7 +784,7 @@ function buildWire(key, name, col, row, st) {
   if (!short) {
     portY.forEach((y, p) => {
       const ok = p === WIRES[st].port;
-      go(hotspot(f, 1040, y - 10, 180, 110, 'port ' + p), ok ? (st === 2 ? 'p2' : 'w' + (st + 1)) : 'wshort', { d: ok ? 0.25 : 0.08 });
+      go(hotspot(f, 1040, y - 10, 180, 110, 'port ' + p), ok ? (st === 2 ? 'p2' : 'w' + (st + 1)) : 'wshort', ok ? MORPH : { d: 0.08 });
     });
     closeBtn(f, 1190, 118, 'p1', PUSH);
     lungs(f);
@@ -813,7 +825,7 @@ function buildReactor(key, name, col, row, onSwitches, switchDests) {
     text(f, x - 50, 646, lbl, { font: 'title', size: 50, fill: on ? C.green : '#506080', w: 100, align: 'CENTER', name: 'sw num ' + lbl });
   });
   if (!error) {
-    swX.forEach((x, i) => go(hotspot(f, x - 60, 248, 120, 400, 'switch ' + (i + 1)), switchDests[i]));
+    swX.forEach((x, i) => go(hotspot(f, x - 60, 248, 120, 400, 'switch ' + (i + 1)), switchDests[i], MORPH));
     glass(f, 200, 732, 150, 46, { r: 23, op: 0.5, stroke: C.cyan, strokeOp: 0.5, shadow: false, name: 'hint button' });
     text(f, 200, 732, '?  HINT', { font: 'mono', size: 13, fill: C.cyan, ls: 3, w: 150, align: 'CENTER', lh: 46, name: 'hint label' });
     go(hotspot(f, 196, 728, 158, 54, 'hint'), 'hr', { d: 0.2 });
