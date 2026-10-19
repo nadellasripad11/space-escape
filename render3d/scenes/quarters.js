@@ -204,6 +204,15 @@ export async function build(state, kit) {
     card.rotation.set(-0.28, 0.0, 0.05);
     card.castShadow = true;
     locker.add(card);
+    // generous invisible hit target: the card mesh is tiny and the parallax
+    // sway makes it drift, so give it a big forgiving click area. renders
+    // nothing (colorWrite/depthWrite off) but the raycaster still hits it,
+    // and pick() walks up to the registered card.
+    const cardHit = new THREE.Mesh(
+      new THREE.BoxGeometry(0.6, 0.5, 0.2),
+      new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false })
+    );
+    card.add(cardHit);
     register('keycard', card);
     cardLight = new THREE.PointLight(0xaed4ff, 3.2, 3, 2);
     cardLight.position.set(0.95, 1.7, -1.15);
