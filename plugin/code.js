@@ -605,7 +605,7 @@ function buildControl(key, name, col, row, s) {
   toast(f, s.toast, s.tone);
 
   go(hotRegion(f, R.whiteboard, 'whiteboard', 8), 'whiteboard', PUSH);
-  // Captain's log tablet — amber glow panel in bottom-right corner
+  // captain's log tablet, the amber panel in the bottom right corner
   glass(f, 1148, 698, 210, 92, { r: 14, op: 0.65, blur: 10, stroke: C.amber, strokeOp: 0.78, glow: C.amber, glowA: 0.28, shadow: false, name: 'log panel' });
   text(f, 1148, 698, 'CAPT  LOG', { font: 'mono', size: 17, fill: C.amber, w: 210, align: 'CENTER', lh: 92, name: 'log panel label' });
   go(hotspot(f, 1143, 693, 220, 102, 'captain log'), 'ctab', PUSH);
@@ -650,7 +650,7 @@ function buildAllPod() {
 }
 
 // ---- puzzles.js
-// ---- the two puzzles: airlock keypad and pod wiring ------------------------------
+// ---- the puzzles: airlock keypad, pod wiring, reactor switches -------------------
 
 function symbol(f, kind, cx, cy, s, col) {
   if (kind === 'circle') ellipse(f, cx - s / 2, cy - s / 2, s, s, { fill: col, fx: [glow(col, 10, 0.6)], name: 'sym circle' });
@@ -837,7 +837,7 @@ function buildReactor(key, name, col, row, onSwitches, switchDests) {
 }
 
 function buildAllReactor() {
-  // Correct sequence: 2, 1, 3 (BRAVO · ALPHA · CHARLIE)
+  // right order is 2, 1, 3 (bravo alpha charlie from the captain's log)
   buildReactor('rp0', '13 / Reactor · start',   0, 9, [],     ['rpx', 'rp1', 'rpx']);
   buildReactor('rp1', '13 / Reactor · step 1',  1, 9, [1],    ['rp2', 'rpx', 'rpx']);
   buildReactor('rp2', '13 / Reactor · step 2',  2, 9, [1, 0], ['rpx', 'rpx', 'p1']);
@@ -881,7 +881,7 @@ function buildWhiteboard() {
   dim(f, 0.5);
   paperShadow(f, 160, 150, 1100, 600, 16);
   rect(f, 160, 150, 1100, 600, { fill: '#eef4fa', stroke: '#8fa6c4', sw: 14, r: 16, name: 'board' });
-  text(f, 220, 190, 'AIRLOCK 03 — NEW PIN', { font: 'mono', size: 30, fill: '#1b3a8a', ls: 2, name: 'h' });
+  text(f, 220, 190, 'AIRLOCK 03 - NEW PIN', { font: 'mono', size: 30, fill: '#1b3a8a', ls: 2, name: 'h' });
   path(f, 220, 250, 'M 0 0 L 960 0', { stroke: '#1b3a8a', sw: 3, name: 'underline' });
   text(f, 220, 300, 'PIN  =  CREW  ×  DECK', { font: 'title', size: 62, fill: '#c0392b', ls: 2, name: 'formula' });
   text(f, 220, 420, "Changed it AGAIN. Do NOT write it on your hand, Marcus.\nIf you can't remember, count the heads on the roster\nand look at the sign.", { font: 'mono', size: 26, lh: 40, fill: '#1b3a8a', name: 'note' });
@@ -993,7 +993,7 @@ function buildHints() {
   hintFrame('hc', '15 / Hint · control room', 5, 4, 'control_sealed', 'CONTROL ROOM', [
     'The terminal wants two digits. Check the whiteboard for the formula.',
     'One number is how many crew. The other is on a sign back in quarters.',
-    "The captain's log has the reactor sequence — read it before you leave.",
+    "The captain's log has the reactor sequence, read it before you leave.",
   ]);
   hintFrame('hr', '15 / Hint · reactor', 5, 9, 'pod_dead', 'REACTOR', [
     "The switches must be flipped in the order from the captain's log.",

@@ -34,7 +34,7 @@ function buildWhiteboard() {
   dim(f, 0.5);
   paperShadow(f, 160, 150, 1100, 600, 16);
   rect(f, 160, 150, 1100, 600, { fill: '#eef4fa', stroke: '#8fa6c4', sw: 14, r: 16, name: 'board' });
-  text(f, 220, 190, 'AIRLOCK 03 — NEW PIN', { font: 'mono', size: 30, fill: '#1b3a8a', ls: 2, name: 'h' });
+  text(f, 220, 190, 'AIRLOCK 03 - NEW PIN', { font: 'mono', size: 30, fill: '#1b3a8a', ls: 2, name: 'h' });
   path(f, 220, 250, 'M 0 0 L 960 0', { stroke: '#1b3a8a', sw: 3, name: 'underline' });
   text(f, 220, 300, 'PIN  =  CREW  ×  DECK', { font: 'title', size: 62, fill: '#c0392b', ls: 2, name: 'formula' });
   text(f, 220, 420, "Changed it AGAIN. Do NOT write it on your hand, Marcus.\nIf you can't remember, count the heads on the roster\nand look at the sign.", { font: 'mono', size: 26, lh: 40, fill: '#1b3a8a', name: 'note' });
@@ -146,7 +146,7 @@ function buildHints() {
   hintFrame('hc', '15 / Hint · control room', 5, 4, 'control_sealed', 'CONTROL ROOM', [
     'The terminal wants two digits. Check the whiteboard for the formula.',
     'One number is how many crew. The other is on a sign back in quarters.',
-    "The captain's log has the reactor sequence — read it before you leave.",
+    "The captain's log has the reactor sequence, read it before you leave.",
   ]);
   hintFrame('hr', '15 / Hint · reactor', 5, 9, 'pod_dead', 'REACTOR', [
     "The switches must be flipped in the order from the captain's log.",

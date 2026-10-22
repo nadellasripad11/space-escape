@@ -1,4 +1,4 @@
-// ---- the two puzzles: airlock keypad and pod wiring ------------------------------
+// ---- the puzzles: airlock keypad, pod wiring, reactor switches -------------------
 
 function symbol(f, kind, cx, cy, s, col) {
   if (kind === 'circle') ellipse(f, cx - s / 2, cy - s / 2, s, s, { fill: col, fx: [glow(col, 10, 0.6)], name: 'sym circle' });
@@ -185,7 +185,7 @@ function buildReactor(key, name, col, row, onSwitches, switchDests) {
 }
 
 function buildAllReactor() {
-  // Correct sequence: 2, 1, 3 (BRAVO · ALPHA · CHARLIE)
+  // right order is 2, 1, 3 (bravo alpha charlie from the captain's log)
   buildReactor('rp0', '13 / Reactor · start',   0, 9, [],     ['rpx', 'rp1', 'rpx']);
   buildReactor('rp1', '13 / Reactor · step 1',  1, 9, [1],    ['rp2', 'rpx', 'rpx']);
   buildReactor('rp2', '13 / Reactor · step 2',  2, 9, [1, 0], ['rpx', 'rpx', 'p1']);

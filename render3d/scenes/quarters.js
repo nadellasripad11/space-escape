@@ -204,10 +204,10 @@ export async function build(state, kit) {
     card.rotation.set(-0.28, 0.0, 0.05);
     card.castShadow = true;
     locker.add(card);
-    // generous invisible hit target: the card mesh is tiny and the parallax
-    // sway makes it drift, so give it a big forgiving click area. renders
-    // nothing (colorWrite/depthWrite off) but the raycaster still hits it,
-    // and pick() walks up to the registered card.
+    // the card mesh is tiny and the camera sway makes it drift, so it was
+    // a pain to click. this invisible box gives it a big forgiving hit area.
+    // it draws nothing but the raycaster still hits it and pick walks up to
+    // the card.
     const cardHit = new THREE.Mesh(
       new THREE.BoxGeometry(0.6, 0.5, 0.2),
       new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false })
